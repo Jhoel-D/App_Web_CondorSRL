@@ -12,9 +12,8 @@ SECRET_KEY = 'django-insecure-#%-kq#^sw@zcohstd2gmcs$29#s0(w@b3v*g%vebxihuuyjm(t
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
+AUTH_USER_MODEL = 'app_gral.Usuario'  # Cambia 'miapp' al nombre de tu app
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -73,9 +72,9 @@ WSGI_APPLICATION = 'sistema_condor_srl.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'condor_srl',
+        'NAME': 'bd_condor_srl',
         'USER': 'root',
-        'PASSWORD': '',
+        'PASSWORD': 'root',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -100,12 +99,13 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/La_Paz'
 
 USE_I18N = True
 

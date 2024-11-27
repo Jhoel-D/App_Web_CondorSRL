@@ -1,0 +1,96 @@
+{% extends 'base/base_home.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center fw-bold mb-4 text">Panel de Clientes</h1>
+
+    <!-- Barra de búsqueda -->
+    <div class="input-group mb-3">
+        <form method="GET" action="{% url 'mod_clientes_home' %}">
+            <input type="text" class="form-control" name="search" placeholder="Buscar por CI o nombres" value="{{ search_term }}">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Tabla de Clientes -->
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>CI</th>
+                    <th>Nombres</th>
+                    <th>Apellidos</th>
+                    <th>Email</th>
+                    <th>Celular</th>
+                    <th>Domicilio</th>
+                    <th>Grupo</th>
+                    <th>Fecha de Registro</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in usuarios %}
+                <tr>
+                    <td>{{ usuario.id }}</td>
+                    <td>{{ usuario.CI }}</td>
+                    <td>{{ usuario.first_name }}</td>
+                    <td>{{ usuario.last_name }}</td>
+                    <td>{{ usuario.email }}</td>
+                    <td>{{ usuario.telefono }}</td>
+                    <td>{{ usuario.domicilio }}</td>
+                    <td>
+                        {% if usuario.groups.count > 0 %}
+                            {{ usuario.groups.first.name }}
+                        {% else %}
+                            Sin grupo
+                        {% endif %}
+                    </td>
+                    <td>{{ usuario.fecha_de_registro|date:"d-m-Y H:i" }}</td>
+                    <td>
+                        <div class="d-flex justify-content-center">
+                            <a href="" class="btn btn-warning btn-sm me-2" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="" class="btn btn-danger btn-sm" title="Eliminar" onclick="return confirm('¿Estás seguro de eliminar este cliente?');">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="text-center">No se encontraron clientes.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- Botón para agregar nuevo cliente -->
+    <div class="text-end mt-3">
+        <a href="" class="btn btn-success">
+            <i class="fas fa-user-plus"></i> Agregar Cliente
+        </a>
+    </div>
+     <!-- Paginación -->
+     <nav aria-label="Pagination">
+        <ul class="pagination justify-content-center">
+            {% if usuarios.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ usuarios.previous_page_number }}&search={{ search_term }}">Anterior</a>
+            </li>
+            {% endif %}
+            <li class="page-item active">
+                <span class="page-link">{{ usuarios.number }}</span>
+            </li>
+            {% if usuarios.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ usuarios.next_page_number }}&search={{ search_term }}">Siguiente</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}

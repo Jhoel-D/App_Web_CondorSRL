@@ -1,1 +1,40 @@
-<h1 class="title is-1 has-text-centered text-center display-3 text-white py-5">¡Bienvenido a Condor SRL!</h1>
+{% extends 'base/base_home.html' %}
+{% block content %}
+{% load static %}
+
+<div class="container-fluid py-4">
+  <div class="row justify-content-center">
+    <div class="col-12">
+      {# Condicional para usuarios autenticados #}
+      {% if user.is_authenticated %}
+      <h1 class="text-center fw-bold text">
+        ¡BIENVENIDO AL SISTEMA DE LA COMPAÑÍA INTERNACIONAL DE FRANQUICIAS CONDOR S.R.L!
+      </h1>
+      {% else %}
+      <h1 class="text-center fw-bold text">
+        ¡ESTÁS POR INGRESAR AL SISTEMA DE FRANQUICIAS CONDOR S.R.L!
+      </h1>
+      {% endif %}
+    </div>
+    
+    <div class="col-10 mt-4">
+      <p class="text-center text">
+        SIstema para el control de ventas, inventario, pedidos, y gestión de usuarios
+      </p>
+    </div>
+    
+    <div class="col-12 text-center mt-4">
+      <img src="{% static 'logo.jpg' %}" alt="Logo" class="img-fluid rounded shadow" style="max-width: 350px;">
+    </div>
+    
+    {# Botones para iniciar sesión o registrarse (sólo si no está autenticado) #}
+    {% if not user.is_authenticated %}
+    <div class="col-12 text-center mt-4">
+      <a href="/iniciar_sesion/" class="btn btn-primary me-2">Iniciar Sesión</a>
+      <a href="/iniciar_sesion/" class="btn btn-secondary">Registrarse</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

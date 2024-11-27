@@ -1,1 +1,71 @@
-<h1 class="title is-1 has-text-centered text-center display-3 text-white py-5">Inicia sesion o Rgeistrate</h1>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Inicio de Sesión</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+    <!-- Esta llamando de manera estática con el load static las paginas estáticas css -->
+    <link rel="stylesheet" href="{% static 'styles/login_style.css' %}"/>
+    <!-- Agrega un estilo en línea para la imagen de fondo -->
+    <style>
+        body {
+            background-image: url("{% static 'img/portada_condor.jpg' %}");
+            background-size: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-form login" id="signin-form">
+        <div class="information">
+            <div class="info-childs">
+                <h2>¡Bienvenido!</h2>
+                <p>Ingresa tus datos para acceder al sistema Condor S.R.L</p>
+                
+                <div>
+                    <a href="{% url 'menu_principal' %}">
+                        <input type="button" name="login" value="Ir a inicio" />
+                    </a>
+                    
+                </div>
+            </div>
+        </div>
+        <div class="form-information">
+            <div class="form-information-childs">
+                <form class="form" action="{% url 'iniciar_sesion' %}" method="POST">
+                    {% csrf_token %}
+                    <h2>Iniciar Sesión</h2>
+                    <label for="username">
+                        <i class="bx bx-envelope"></i>
+                        <input type="text" name="username" id="username" class="form-control" placeholder="Ingrese su usuario">
+                    </label>
+                    <label for="password">
+                        <i class="bx bx-lock-alt"></i>
+                        <input type="password" name="password" id="password" class="form-control" placeholder="Ingrese su contraseña">
+                    </label>
+                    {% if error_message %}
+                    <div class="error-message">
+                        {{ error_message }}
+                    </div>
+                    {% endif %}
+                    <input type="submit" name="login" value="Iniciar Sesión" />
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById("signup-button").addEventListener("click", function() {
+            window.location.href = "{% url 'iniciar_sesion' %}";
+        });
+
+        document.getElementById("home-button").addEventListener("click", function() {
+            window.location.href = "{% url 'menu_inicio' %}";
+        });
+    </script>
+
+</body>
+</html>
