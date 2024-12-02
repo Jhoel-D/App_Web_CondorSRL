@@ -1,7 +1,11 @@
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+# Validar , en html
+from django.conf.locale.es import formats as es_formats
+es_formats.DECIMAL_SEPARATOR = '.'
 
 
 # Quick-start development settings - unsuitable for production
@@ -27,6 +31,15 @@ INSTALLED_APPS = [
     'app_gral',
     'app_web_linea'
 ]
+
+INSTALLED_APPS += [
+    'crispy_forms',
+    'crispy_bootstrap5',  # Para usar plantillas de Bootstrap 5
+]
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -72,7 +85,7 @@ WSGI_APPLICATION = 'sistema_condor_srl.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bd_condor_srl',
+        'NAME': 'bd_condor_srl_01',
         'USER': 'root',
         'PASSWORD': 'root',
         'HOST': 'localhost',
@@ -103,7 +116,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es'
 
 TIME_ZONE = 'America/La_Paz'
 
@@ -116,6 +129,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+LOGIN_URL = '/iniciar_sesion'
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+# For IMG
+MEDIA_ROOT = os.path.join(BASE_DIR, "")
+MEDIA_URl = '/bd_images/'
+# Define el directorio donde se almacenarán las imágenes subidas
+MEDIA_ROOT = os.path.join(BASE_DIR, 'app_gral/bd_images')  # Asegúrate de que el directorio 'media' exista
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

@@ -1,0 +1,103 @@
+{% extends 'base/base_home.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-5 text">
+    <h1 class="text-center fw-bold mb-4">Registrar Usuario</h1>
+    
+    <form method="POST" enctype="multipart/form-data" class="row g-4" id="formCrearProducto">
+        {% csrf_token %}
+        
+        <!-- Primera columna -->
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="id_username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="id_username" name="username" placeholder="Ingrese un Username" required>
+            </div>
+            <div class="form-group">
+                <label for="id_password" class="form-label">Contraseña</label>
+                <input type="password" class="form-control" id="id_password" name="password" placeholder="Ingrese contraseña" required>
+            </div>
+            <div class="form-group">
+                <label for="id_first_name" class="form-label">Nombres</label>
+                <input type="text" class="form-control" id="id_first_name" name="first_name" placeholder="Nombres" required>
+            </div>
+            <div class="form-group">
+                <label for="id_last_name" class="form-label">Apellidos</label>
+                <input type="text" class="form-control" id="id_last_name" name="last_name" placeholder="Apellidos" required>
+            </div>
+            <div class="form-group">
+                <label for="id_grupo" class="form-label">Grupo</label>
+                {{ form.grupo }}
+            </div>
+            <div class="form-group">
+                <label for="id_CI" class="form-label">CI</label>
+                <input type="text" class="form-control" id="id_CI" name="CI" required>
+            </div>
+            <div class="form-group">
+                <label for="id_fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                <input type="date" class="form-control" id="id_fecha_nacimiento" name="fecha_nacimiento" required>
+            </div>
+
+               <!-- Botones de acción -->
+            <div class="col-12 text-center">
+               <button type="submit" class="btn btn-success mt-3">Registrar</button>
+              <a href="{% url 'mod_usuarios_home' %}" class="btn btn-secondary mt-3">Volver al Panel de Usuarios</a>
+             </div>
+        </div>
+        
+        <!-- Segunda columna -->
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="id_celular" class="form-label">Teléfono</label>
+                <input type="text" class="form-control" id="id_celular" name="telefono" required>
+            </div>
+            <div class="form-group">
+                <label for="id_email" class="form-label">Correo</label>
+                <input type="email" class="form-control" id="id_email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="id_domicilio" class="form-label">Domicilio</label>
+                <textarea class="form-control" id="id_domicilio" name="domicilio"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="id_imagen_producto" class="form-label">Imagen de Perfil</label>
+                <input type="file" class="form-control" id="id_imagen_producto" name="imagen_perfil">
+                    <p class="mt-2 text">Imagen: 
+                        <img src="{% static '/img/perfil_defecto.jpg' %}" width="250" class="rounded-circle img-fluid" alt="Sin imagen">
+                    </p>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- SweetAlert Script -->
+<script>
+    document.getElementById("formCrearProducto").addEventListener("submit", function(event) {
+        event.preventDefault(); // Detiene el envío inmediato del formulario
+        
+        // Confirmar guardado con SweetAlert2
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¿Deseas registrar al usuario?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, guardar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Mostrar mensaje de éxito
+                Swal.fire(
+                    'Guardado!',
+                    'El usuario ha sido creado exitosamente.',
+                    'success'
+                ).then(() => {
+                    // Enviar el formulario después de mostrar la alerta
+                    event.target.submit();
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

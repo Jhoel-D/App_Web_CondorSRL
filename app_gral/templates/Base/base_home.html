@@ -16,6 +16,7 @@
     <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
 
     <title>MENU GENERAL DE CONDOR S.R.L</title>
+
 </head>
 <body>
     <!-- Sidebar -->
@@ -23,19 +24,21 @@
         <header>
             <div class="image-text">
                 <span class="image">
-                    <img src="{% static 'logo.jpg' %}" alt="Logo de Condor S.R.L">
+                    <a href="/">
+                        <img src="{% static 'logo.jpg' %}" alt="Logo de Condor S.R.L">
+                      </a>
                 </span>
 
                 <div class="text logo-text">
-                    <span class="name"></span>
-                    <span class="profession">_CONDOR S.R.L_</span>
+                    <span class="name">_CONDOR S.R.L._</span>
+                    {% comment %} <span class="text-center fw-bold mb-4 text profession">_CONDOR S.R.L_</span> {% endcomment %}
                 </div>
             </div>
             <i class='bx bx-chevron-right toggle'></i>
         </header>
 
         <div class="menu-bar">
-            {% if user.is_authenticated%}
+            {% comment %} {% if user.is_authenticated%} {% endcomment %}
             <div class="bottom-content">
                     {% comment %} {% if es_administrador %} {% endcomment %}
                         <li class="nav-link">
@@ -45,7 +48,7 @@
                             </a>
                         </li>
                         <li class="nav-link">
-                            <a href="#">
+                            <a href="{% url 'roles_list' %}">
                                 <i class='bx bxs-user-detail icon'></i>
                                 <span class="text nav-text">ROLES</span>
                             </a>
@@ -57,7 +60,7 @@
                             </a>
                         </li>
                         <li class="nav-link">
-                            <a href="#">
+                            <a href="{% url 'mod_productos_home' %}">
                                 <i class='bx bx-store icon'></i>
                                 <span class="text nav-text">PRODUCTOS</span>
                             </a>
@@ -85,7 +88,7 @@
             <div class="bottom-content">
                 {% if user.is_authenticated %}
                     <li>
-                        <a href="#">
+                        <a href="{% url 'ver_perfil' %}">
                             <i class='bx bx-user-circle icon'></i>
                             <span class="text nav-text">VER PERFIL</span>
                         </a>
@@ -116,17 +119,21 @@
                     </div>
                 </li>
             </div>
-            {% endif %}
+            {% comment %} {% endif %} {% endcomment %}
         </div>
     </nav>
 
     <!-- Contenido dinámico -->
     <section class="home">
         {% block content %}
+
+
+        
         {% endblock %}
     </section>
 
     <!-- Scripts -->
     <script src="{% static 'script.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>

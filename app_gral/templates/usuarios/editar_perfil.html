@@ -1,0 +1,50 @@
+{% extends 'base/base_home.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center fw-bold mb-4 text-primary">Editar Perfil</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-lg p-4">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="text-secondary">Información Personal</h5>
+                            {{ form.first_name|as_crispy_field }}
+                            {{ form.last_name|as_crispy_field }}
+                            {{ form.email|as_crispy_field }}
+                            {{ form.telefono|as_crispy_field }}
+                            {{ form.domicilio|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="text-secondary">Información Adicional</h5>
+                            {{ form.fecha_nacimiento|as_crispy_field }}
+                            <div class="mb-3">
+                                <label for="imagen_perfil" class="form-label">Imagen de Perfil</label>
+                                {% if user.imagen_perfil %}
+                                    <img src="{{ user.imagen_perfil.url }}" class="img-fluid rounded-circle" alt="Imagen de perfil" style="max-width: 200px;">
+                                {% else %}
+                                    <img src="{% static 'img/perfil_defecto.jpg' %}" class="img-fluid rounded-circle" alt="Imagen por defecto" style="max-width: 200px;">
+                                {% endif %}
+                                <input type="file" class="form-control mt-2" id="imagen_perfil" name="imagen_perfil">
+                            </div>
+                            {{ form.imagen_perfil|as_crispy_field }}
+                        </div>
+                        
+                    </div>
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg me-3">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                        <a href="{% url 'ver_perfil' %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

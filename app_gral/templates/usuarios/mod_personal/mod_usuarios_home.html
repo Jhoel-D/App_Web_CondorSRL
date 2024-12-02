@@ -1,22 +1,20 @@
 {% extends 'base/base_home.html' %}
 
-
 {% block content %}
-{% load static %}
-
 <div class="container mt-5">
-    <h1 class="text-center fw-bold mb-4 text">Panel de Usuarios</h1>
+    <div class="text">
+        <h1 class="text-center fw-bold mb-4">Panel de Usuarios</h1>
+    </div>
 
-
-        <!-- Barra de búsqueda -->
-        <div class="input-group mb-3">
-          <form method="GET" action="{% url 'mod_usuarios_home' %}">
-              <input type="text" class="form-control" id="search-patient" name="search" placeholder="Buscar por CI o nombres" value="{{ search_term }}">
-              <button type="submit" class="btn btn-primary" id="search-btn">
-                  <i class="fas fa-search"></i>
-              </button>
-          </form>
-      </div>
+    <!-- Barra de búsqueda -->
+    <div class="input-group mb-3">
+        <form method="GET" action="{% url 'mod_usuarios_home' %}">
+            <input type="text" class="form-control" id="search-patient" name="search" placeholder="Buscar por CI o nombres" value="{{ search_term }}">
+            <button type="submit" class="btn btn-primary" id="search-btn">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+    </div>
 
     <!-- Tabla de Usuarios -->
     <div class="table-responsive">
@@ -56,10 +54,16 @@
                     <td>
                         <!-- Acciones -->
                         <div class="d-flex justify-content-center">
-                            <a href="" class="btn btn-warning btn-sm me-2" title="Editar">
+                            <a href="{% url 'ver_usuario' usuario.id %}" class="btn btn-info btn-sm me-2" title="Ver">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'editar_usuario' usuario.id %}" class="btn btn-warning btn-sm me-2" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="" class="btn btn-danger btn-sm" title="Eliminar" onclick="return confirm('¿Estás seguro de eliminar este usuario?');">
+                            <a href="javascript:void(0);" 
+                               class="btn btn-danger btn-sm" 
+                               title="Eliminar" 
+                               onclick="deleteUsuario({{ usuario.id }});">
                                 <i class="fas fa-trash-alt"></i>
                             </a>
                         </div>
@@ -67,7 +71,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="8" class="text-center">No se encontraron usuarios.</td>
+                    <td colspan="10" class="text-center">No se encontraron usuarios.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -76,29 +80,52 @@
 
     <!-- Botón para agregar nuevo usuario -->
     <div class="text-end mt-3">
-        <a href="" class="btn btn-success">
+        <a href="{% url 'registrar_usuario' %}" class="btn btn-success">
             <i class="fas fa-user-plus"></i> Agregar Usuario
         </a>
     </div>
 
     <!-- Paginación -->
     <nav aria-label="Pagination">
-      <ul class="pagination justify-content-center">
-          {% if usuarios.has_previous %}
-          <li class="page-item">
-              <a class="page-link" href="?page={{ usuarios.previous_page_number }}&search={{ search_term }}">Anterior</a>
-          </li>
-          {% endif %}
-          <li class="page-item active">
-              <span class="page-link">{{ usuarios.number }}</span>
-          </li>
-          {% if usuarios.has_next %}
-          <li class="page-item">
-              <a class="page-link" href="?page={{ usuarios.next_page_number }}&search={{ search_term }}">Siguiente</a>
-          </li>
-          {% endif %}
-      </ul>
-  </nav>
+        <ul class="pagination justify-content-center">
+            {% if usuarios.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ usuarios.previous_page_number }}&search={{ search_term }}">Anterior</a>
+            </li>
+            {% endif %}
+            <li class="page-item active">
+                <span class="page-link">{{ usuarios.number }}</span>
+            </li>
+            {% if usuarios.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ usuarios.next_page_number }}&search={{ search_term }}">Siguiente</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
 </div>
+
+<!-- Incluir SweetAlert CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function deleteUsuario(usuarioId) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¡Este usuario será eliminado permanentemente!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminarlo',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Redirigir a la URL de eliminación (con el ID del usuario)
+                window.location.href = "{% url 'eliminar_usuario' 0 %}".replace("0", usuarioId);
+            }
+        });
+    }
+</script>
 
 {% endblock %}

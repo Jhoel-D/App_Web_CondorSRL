@@ -1,0 +1,88 @@
+{% extends 'base/base_home.html' %}
+
+{% block content %}
+<div class="container mt-5 text">
+    <h1 class="text-center fw-bold mb-4">Crear Nuevo Producto</h1>
+    
+    <form method="POST" enctype="multipart/form-data" class="row g-4" id="formCrearProducto">
+        {% csrf_token %}
+        
+        <!-- Primera columna -->
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="id_nombre" class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="id_nombre" name="nombre" placeholder="Nombre del producto" required>
+            </div>
+            <div class="form-group">
+                <label for="id_precio_unitario" class="form-label">Precio Unitario</label>
+                <input type="number" step="0.01" class="form-control" id="id_precio_unitario" name="precio_unitario" placeholder="Ej. 19.99" required>
+            </div>
+            <div class="form-group">
+                <label for="id_id_categoria" class="form-label">Categoría</label>
+                <select class="form-select" id="id_id_categoria" name="id_categoria">
+                    {% for categoria in form.fields.id_categoria.queryset %}
+                        <option value="{{ categoria.id_categoria }}">{{ categoria.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="id_caracteristicas" class="form-label">Características</label>
+                <textarea class="form-control" id="id_caracteristicas" name="caracteristicas" placeholder="Ej. Características del producto"></textarea>
+            </div>
+        </div>
+        
+        <!-- Segunda columna -->
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="id_descripcion" class="form-label">Descripción</label>
+                <textarea class="form-control" id="id_descripcion" name="descripcion" placeholder="Breve descripción del producto"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="id_cantidad_stock" class="form-label">Cantidad en Stock</label>
+                <input type="number" class="form-control" id="id_cantidad_stock" name="cantidad_stock" placeholder="Cantidad disponible" required>
+            </div>
+            <div class="form-group">
+                <label for="id_imagen_producto" class="form-label">Imagen del Producto</label>
+                <input type="file" class="form-control" id="id_imagen_producto" name="imagen_producto">
+            </div>
+        </div>
+        
+        <!-- Botones de acción -->
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-success mt-3">Guardar Producto</button>
+            <a href="{% url 'mod_productos_home' %}" class="btn btn-secondary mt-3">Volver al Panel de Productos</a>
+        </div>
+    </form>
+</div>
+
+<!-- SweetAlert Script -->
+<script>
+    document.getElementById("formCrearProducto").addEventListener("submit", function(event) {
+        event.preventDefault(); // Detiene el envío inmediato del formulario
+        
+        // Confirmar guardado con SweetAlert2
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¿Deseas guardar este producto?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, guardar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Mostrar mensaje de éxito
+                Swal.fire(
+                    'Guardado!',
+                    'El producto ha sido creado exitosamente.',
+                    'success'
+                ).then(() => {
+                    // Enviar el formulario después de mostrar la alerta
+                    event.target.submit();
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}
