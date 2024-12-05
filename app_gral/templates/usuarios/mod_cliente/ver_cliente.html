@@ -1,0 +1,35 @@
+{% extends 'base/base_home.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-4 text">
+    <h1 class="text-center fw-bold mb-4">Detalles de Cliente</h1>
+    <div class="row align-items-center">
+        <div class="col-md-5 text-left">
+            {% if cliente.imagen_perfil %}
+                <img src="{{ cliente.imagen_perfil.url }}" style="max-width: 400px;" class="rounded-circle img-fluid" alt="Imagen de perfil">
+            {% else %}
+                
+                <img src="{% static '/img/perfil_defecto.jpg' %}"style="max-width: 400px; class="rounded-circle img-fluid" alt="Sin imagen">
+            {% endif %}
+            <h3 class="fw-bold">Nombre Completo: {{ cliente.first_name }} {{ cliente.last_name }}</h3>
+            <p><strong>CI:</strong> {{ cliente.CI }} ID: {{ cliente.id }}</p>
+            <p><strong>Username:</strong> {{ cliente.username }}</p>
+        </div>
+        <!-- Información del cliente -->
+        <div class="col-md-6">
+            <p><strong>Correo:</strong> {{ cliente.email }}</p>
+            <p><strong>Edad:</strong> {{ cliente.fecha_nacimiento }}</p>
+            <p><strong>Celular:</strong> {{ cliente.telefono }}</p>
+            <p><strong>Domicilio:</strong> {{ cliente.domicilio }}</p>
+            <p><strong>Estado:</strong> {{ cliente.get_status }}</p>
+
+            <p><strong>Ultima fecha de inicio de sesión:</strong> {{ cliente.last_login }}</p>
+            <div class="mt-4 text-center">
+                <a href="{% url 'mod_clientes_home' %}" class="btn btn-secondary">Volver al Panel de Productos</a>
+            </div>
+        </div>
+        
+    </div>
+    
+</div>
+{% endblock %}

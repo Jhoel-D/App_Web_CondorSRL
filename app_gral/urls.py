@@ -18,9 +18,15 @@ urlpatterns = [
     path('usuario/registrar/', views.registrar_usuario, name='registrar_usuario'),
     #MOD CLIENTES
     path('mod_clientes_home/', views.mod_clientes_home, name='mod_clientes_home'),
+    path('cliente/<int:cliente_id>/', views.ver_cliente, name='ver_cliente'),
+    path('cliente/editar/<int:cliente_id>/', views.editar_cliente, name='editar_cliente'),
+    path('cliente/eliminar/<int:cliente_id>/', views.eliminar_cliente, name='eliminar_cliente'),
+    path('cliente/registrar/', views.registrar_cliente, name='registrar_cliente'),
     #MOD ROLES
-    path('roles_list/', views.roles_list, name='roles_list'),
-    path('agregar_rol/', views.agregar_rol, name='agregar_rol'),
+    path('roles/', views.roles_list, name='roles_list'),
+    
+    path('roles/agregar/', views.agregar_rol, name='agregar_rol'),
+    path('roles/editar/<int:rol_id>/', views.editar_rol, name='editar_rol'),
     
     #MOD VER PERFIL
     path('perfil/', views.ver_perfil, name='ver_perfil'),
@@ -34,7 +40,14 @@ urlpatterns = [
     path('producto/eliminar/<int:producto_id>/', views.eliminar_producto, name='eliminar_producto'),
     path('producto/crear/', views.crear_producto, name='crear_producto'),
     #MOD CATEGORIAS
-    #path('mod_categorias_home/', views.mod_categorias_home, name='mod_categorias_home'),
+    path('categorias/', views.mod_categorias_home, name='mod_categorias_home'),
+    path('categoria/editar/<int:categoria_id>/', views.editar_categoria, name='editar_categoria'),
+    path('categoria/eliminar/<int:categoria_id>/', views.eliminar_categoria, name='eliminar_categoria'),
+    path('categoria/crear/', views.crear_categoria, name='crear_categoria'),
+    
+    #MOD VENTAS
+    path('ventas/', views.mod_ventas_home, name='mod_ventas_home'),
+    
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

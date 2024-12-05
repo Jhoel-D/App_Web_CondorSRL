@@ -1,0 +1,64 @@
+{% extends 'base/base_home.html' %}
+
+{% block content %}
+<div class="container mt-5 text">
+    <h1 class="text-center fw-bold mb-4">Crear Nuevo Categoría</h1>
+    
+    <form method="POST" enctype="multipart/form-data" class="row g-4" id="formCrearCategoria">
+        {% csrf_token %}
+        
+        <!-- Primera columna -->
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="id_nombre" class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="id_nombre" name="nombre" placeholder="Nombre de la categoría" required>
+            </div>
+        </div>
+        
+        <!-- Segunda columna -->
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="id_descripcion" class="form-label">Descripción</label>
+                <textarea class="form-control" id="id_descripcion" name="descripcion" placeholder="Breve descripción de la categoría"></textarea>
+            </div>
+        </div>
+        
+        <!-- Botones de acción -->
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-success mt-3">Guardar Categoría</button>
+            <a href="{% url 'mod_categorias_home' %}" class="btn btn-secondary mt-3">Volver al Panel de Categorías</a>
+        </div>
+    </form>
+</div>
+
+<!-- SweetAlert Script -->
+<script>
+    document.getElementById("formCrearCategoria").addEventListener("submit", function(event) {
+        event.preventDefault(); // Detiene el envío inmediato del formulario
+        
+        // Confirmar guardado con SweetAlert2
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¿Deseas guardar esta categoría?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, guardar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Mostrar mensaje de éxito
+                Swal.fire(
+                    'Guardado!',
+                    'La categoría ha sido creada exitosamente.',
+                    'success'
+                ).then(() => {
+                    // Enviar el formulario después de mostrar la alerta
+                    event.target.submit();
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

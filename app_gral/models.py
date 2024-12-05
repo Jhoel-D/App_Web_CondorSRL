@@ -11,7 +11,8 @@ class Usuario(AbstractUser):
     domicilio = models.TextField()
     fecha_de_registro = models.DateTimeField(auto_now_add=True)
     imagen_perfil = models.ImageField(upload_to='bd_images/', verbose_name='Imagen de perfil', null=True, blank=True)
-
+    def get_status(self):
+        return "Activo" if self.is_active else "Dado de baja"
     def __str__(self):
         return self.username
 
@@ -38,6 +39,10 @@ class Categoria(models.Model):
     id_categoria = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField()
+    is_active = models.BooleanField(default=True)
+    
+    def get_status(self):
+        return "Activo" if self.is_active else "Dado de baja"
 
     def __str__(self):
         return self.nombre
@@ -50,6 +55,10 @@ class ProductoInventario(models.Model):
     caracteristicas = models.TextField()
     cantidad_stock = models.PositiveIntegerField(default=0)
     imagen_producto = models.ImageField(upload_to='bd_images/', null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    
+    def get_status(self):
+        return "Activo" if self.is_active else "Dado de baja"
     
     def clean(self):
         if self.precio_unitario < 0:
@@ -89,18 +98,6 @@ class Ventas(models.Model):
         ('COMPLETADO', 'Completado'),
         ('CANCELADO', 'Cancelado'),
     ]
-    BOLIVIAN_DEPARTMENTS = [
-        ('LP', 'La Paz'),
-        ('CBB', 'Cochabamba'),
-        ('SCZ', 'Santa Cruz'),
-        ('OR', 'Oruro'),
-        ('PT', 'Potosí'),
-        ('TJ', 'Tarija'),
-        ('CH', 'Chuquisaca'),
-        ('BE', 'Beni'),
-        ('PD', 'Pando'),
-        ('El Alto', 'El Alto'),
-    ]
     id_venta = models.AutoField(primary_key=True)
     id_cliente = models.ForeignKey(
         Usuario, 
@@ -116,7 +113,6 @@ class Ventas(models.Model):
     fecha_registro = models.DateTimeField(auto_now_add=True)
     costo_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='PENDIENTE')
-    departamento = models.CharField(max_length=100, choices=BOLIVIAN_DEPARTMENTS, default='')
 
     def save(self, *args, **kwargs):
         # Solo guarda el objeto sin calcular costo_total la primera vez

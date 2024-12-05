@@ -1,0 +1,18 @@
+{% extends 'base/base_home.html' %}
+
+{% block content %}
+<div class="container mt-5 text">
+    <h1 class="text-center fw-bold mb-4">Editar Rol</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre del Rol</label>
+            <input type="text" id="nombre" name="nombre" class="form-control" value="{{ rol.name }}" placeholder="Ingrese el nuevo nombre del rol">
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-success">Actualizar</button>
+            <a href="{% url 'roles_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

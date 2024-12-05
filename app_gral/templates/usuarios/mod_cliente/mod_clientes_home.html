@@ -10,10 +10,10 @@
     <div class="input-group mb-3">
         <form method="GET" action="{% url 'mod_clientes_home' %}">
             <input type="text" class="form-control" name="search" placeholder="Buscar por CI o nombres" value="{{ search_term }}">
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-search"></i>
-            </button>
         </form>
+        <button type="submit" class="btn btn-dark">
+            <i class="fas fa-search"></i>
+        </button>
     </div>
 
     <!-- Tabla de Clientes -->
@@ -34,31 +34,37 @@
                 </tr>
             </thead>
             <tbody>
-                {% for usuario in usuarios %}
+                {% for cliente in usuarios %}
                 <tr>
-                    <td>{{ usuario.id }}</td>
-                    <td>{{ usuario.CI }}</td>
-                    <td>{{ usuario.first_name }}</td>
-                    <td>{{ usuario.last_name }}</td>
-                    <td>{{ usuario.email }}</td>
-                    <td>{{ usuario.telefono }}</td>
-                    <td>{{ usuario.domicilio }}</td>
+                    <td>{{ cliente.id }}</td>
+                    <td>{{ cliente.CI }}</td>
+                    <td>{{ cliente.first_name }}</td>
+                    <td>{{ cliente.last_name }}</td>
+                    <td>{{ cliente.email }}</td>
+                    <td>{{ cliente.telefono }}</td>
+                    <td>{{ cliente.domicilio }}</td>
                     <td>
-                        {% if usuario.groups.count > 0 %}
-                            {{ usuario.groups.first.name }}
+                        {% if cliente.groups.count > 0 %}
+                            {{ cliente.groups.first.name }}
                         {% else %}
                             Sin grupo
                         {% endif %}
                     </td>
-                    <td>{{ usuario.fecha_de_registro|date:"d-m-Y H:i" }}</td>
+                    <td>{{ cliente.fecha_de_registro|date:"d-m-Y H:i" }}</td>
                     <td>
                         <div class="d-flex justify-content-center">
-                            <a href="" class="btn btn-warning btn-sm me-2" title="Editar">
+                            <a href="{% url 'ver_cliente' cliente.id %}" class="btn btn-info btn-sm me-2">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'editar_cliente' cliente.id %}" class="btn btn-warning btn-sm me-2" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="" class="btn btn-danger btn-sm" title="Eliminar" onclick="return confirm('¿Estás seguro de eliminar este cliente?');">
+                            <a href="javascript:void(0);" 
+                                class="btn btn-danger btn-sm" 
+                                title="Eliminar" 
+                                onclick="deleteUsuario({{ cliente.id }});">
                                 <i class="fas fa-trash-alt"></i>
-                            </a>
+                             </a>
                         </div>
                     </td>
                 </tr>
@@ -72,7 +78,7 @@
     </div>
     <!-- Botón para agregar nuevo cliente -->
     <div class="text-end mt-3">
-        <a href="" class="btn btn-success">
+        <a href="{% url 'registrar_cliente' %}" class="btn btn-success">
             <i class="fas fa-user-plus"></i> Agregar Cliente
         </a>
     </div>
@@ -95,4 +101,24 @@
         </ul>
     </nav>
 </div>
+
+<script>
+    function deleteUsuario(clienteId) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¡Este Cliente será eliminado!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminarlo',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Redirigir a la URL de eliminación (con el ID del producto)
+                window.location.href = "{% url 'eliminar_cliente' 0 %}".replace("0", clienteId);
+            }
+        });
+    }
+</script>
 {% endblock %}

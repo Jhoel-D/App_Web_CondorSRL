@@ -13,7 +13,7 @@
                         {% csrf_token %}
                         <div class="form-group mb-3">
                             <label for="nombre_rol" class="form-label fw-semibold">Nombre del Rol</label>
-                            <input type="text" class="form-control" id="nombre_rol" name="nombre_rol" placeholder="Ingrese el nombre del rol" required>
+                            <input type="text" class="form-control" id="nombre_rol" name="nombre" placeholder="Ingrese el nombre del rol" required>
                         </div>
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'roles_list' %}" class="btn btn-secondary">

@@ -1,34 +1,35 @@
 {% extends 'base/base_home.html' %}
 {% load static %}
 {% block content %}
-<div class="container mt-5 text">
+<div class="container mt-4 text">
     <h1 class="text-center fw-bold mb-4">Detalles de Usuario</h1>
-    
     <div class="row align-items-center">
-        <div class="col-md-4 text-center">
+        <div class="col-md-5 text-left">
             {% if usuario.imagen_perfil %}
-                <img src="{{ usuario.imagen_perfil.url }}" class="rounded-circle img-fluid" alt="Imagen de perfil">
+                <img src="{{ usuario.imagen_perfil.url }}" style="max-width: 400px;" class="rounded-circle img-fluid" alt="Imagen de perfil">
             {% else %}
                 
-                <img src="{% static '/img/perfil_defecto.jpg' %}" class="rounded-circle img-fluid" alt="Sin imagen">
+                <img src="{% static '/img/perfil_defecto.jpg' %}"style="max-width: 400px; class="rounded-circle img-fluid" alt="Sin imagen">
             {% endif %}
-        </div>
-        <!-- Información del producto -->
-        <div class="col-md-6">
             <h3 class="fw-bold">Nombre Completo: {{ usuario.first_name }} {{ usuario.last_name }}</h3>
-            <p><strong>Id:</strong> {{ usuario.id }}</p>
-            <p><strong>CI:</strong> {{ usuario.CI }}</p>
+            <p><strong>CI:</strong> {{ usuario.CI }} ID: {{ usuario.id }}</p>
             <p><strong>Username:</strong> {{ usuario.username }}</p>
+        </div>
+        <!-- Información del usuario -->
+        <div class="col-md-6">
             <p><strong>Correo:</strong> {{ usuario.email }}</p>
             <p><strong>Edad:</strong> {{ usuario.fecha_nacimiento }}</p>
             <p><strong>Celular:</strong> {{ usuario.telefono }}</p>
             <p><strong>Domicilio:</strong> {{ usuario.domicilio }}</p>
+            <p><strong>Estado:</strong> {{ usuario.get_status }}</p>
+
+            <p><strong>Ultima fecha de inicio de sesión:</strong> {{ usuario.last_login }}</p>
+            <div class="mt-4 text-center">
+                <a href="{% url 'mod_usuarios_home' %}" class="btn btn-secondary">Volver al Panel de Productos</a>
+            </div>
         </div>
+        
     </div>
     
-    <!-- Botón de regreso -->
-    <div class="mt-4 text-center">
-        <a href="{% url 'mod_usuarios_home' %}" class="btn btn-secondary">Volver al Panel de Productos</a>
-    </div>
 </div>
 {% endblock %}

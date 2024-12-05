@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User, Group
 
-from .models import Usuario, ProductoInventario, Categoria
+from .models import Usuario, ProductoInventario, Categoria, Usuario
 
 class UsuarioUpdateForm(forms.ModelForm):
     class Meta:
@@ -21,10 +21,6 @@ class UsuarioForm(forms.ModelForm):
         model = Usuario
         fields = ['first_name', 'last_name', 'email', 'CI', 'fecha_nacimiento', 'telefono', 'domicilio', 'domicilio', 'imagen_perfil']
 
-
-from django import forms
-from django.contrib.auth.models import Group
-from .models import Usuario  # Asegúrate de importar el modelo correcto
 
 class UsuarioCreateForm(forms.ModelForm):
     grupo = forms.ModelChoiceField(
@@ -56,8 +52,12 @@ class UsuarioCreateForm(forms.ModelForm):
         if commit:
             usuario.save()
             grupo = self.cleaned_data.get('grupo')  # Obtén el grupo seleccionado
-            if grupo:
-                usuario.groups.add(grupo)  # Asocia el grupo al usuario
+            if not grupo:  # Si no se selecciona ningún grupo
+                try:
+                    grupo = Group.objects.get(name="Cliente")  # Busca el grupo "Cliente"
+                except Group.DoesNotExist:
+                    raise ValueError("El grupo 'Cliente' no existe. Por favor, créalo en el sistema.")  
+            usuario.groups.add(grupo)  # Asocia el grupo (seleccionado o predeterminado) al usuario
         return usuario
 
 class ProductoInventarioForm(forms.ModelForm):
@@ -103,3 +103,20 @@ class ProductoInventarioCreateForm(forms.ModelForm):
         if cantidad < 0:
             raise forms.ValidationError('La cantidad en stock no puede ser negativa.')
         return cantidad
+
+
+class CategoriaForm(forms.ModelForm):
+    class Meta:
+        model = Categoria
+        fields = ['id_categoria', 'nombre', 'descripcion']
+        
+
+class CategoriaCreateForm(forms.ModelForm):
+    class Meta:
+        model = Categoria
+        fields = ['id_categoria', 'nombre', 'descripcion']
+    widgets = {
+            'id_categoria': forms.NumberInput(attrs={'class': 'form-control'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control'}),
+        }

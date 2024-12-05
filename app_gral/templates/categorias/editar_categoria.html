@@ -1,0 +1,60 @@
+{% extends 'base/base_home.html' %}
+
+{% block content %}
+<div class="container mt-5 text">
+    <h1 class="text-center fw-bold mb-4">Editar Categoría</h1>
+    
+    <form method="POST" enctype="multipart/form-data" class="row g-4 " id="formEditarProducto">
+        {% csrf_token %}
+        
+        <!-- Primera columna -->
+        <div class="col-md-7">
+
+            <div class="form-group text">
+                <label for="id_nombre" class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="id_nombre" name="nombre" value="{{ categoria.nombre }}" required>
+
+                <label for="id_descripcion" class="form-label">Descripción</label>
+                <textarea class="form-control" id="id_descripcion" name="descripcion">{{ categoria.descripcion }}</textarea>
+            </div>
+             <!-- Botones de acción -->
+            
+        </div>
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-success mt-3">Actualizar Categoría</button>
+            <a href="{% url 'mod_categorias_home' %}" class="btn btn-secondary mt-3">Volver al Panel de Categoría</a>
+      </div>
+    </form>
+</div>
+
+<!-- SweetAlert Script -->
+<script>
+    document.getElementById("formEditarProducto").addEventListener("submit", function(event) {
+        event.preventDefault(); // Evita el envío inmediato del formulario
+        
+        // Confirmar actualización con SweetAlert2
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¿Quieres actualizar esta categoría?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, actualizar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Mostrar mensaje de éxito
+                Swal.fire(
+                    'Actualizado!',
+                    'La Categoría ha sido actualizada correctamente.',
+                    'success'
+                ).then(() => {
+                    // Enviar el formulario después de mostrar la alerta
+                    event.target.submit();
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

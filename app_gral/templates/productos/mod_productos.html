@@ -1,8 +1,8 @@
 {% extends 'base/base_home.html' %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="text">
+<div class="container mt-5 text">
+    <div>
         <h1 class="text-center fw-bold mb-4">Panel de Productos</h1>
     </div>
     
@@ -10,15 +10,15 @@
     <div class="input-group mb-3">
         <form method="GET" action="{% url 'mod_productos_home' %}">
             <input type="text" class="form-control" name="search" placeholder="Buscar por nombre de producto" value="{{ search_term }}">
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-search"></i>
-            </button>
         </form>
+        <button type="submit" class="btn btn-dark">
+            <i class="fas fa-search"></i>
+        </button>
     </div>
 
     <!-- Tabla de Productos -->
     <div class="table-responsive">
-        <table class="table table-hover align-middle">
+        <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>
                     <th>ID</th>
@@ -40,7 +40,7 @@
                     <td>{{ producto.cantidad_stock }}</td>
                     <td>
                         {% if producto.imagen_producto %}
-                            <img src="{{ producto.imagen_producto.url }}" alt="{{ producto.nombre }}" width="50">
+                            <img src="{{ producto.imagen_producto.url }}" alt="{{ producto.nombre }}" width="60">
                         {% else %}
                             No disponible
                         {% endif %}
@@ -105,7 +105,7 @@
     function deleteProducto(productId) {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: "¡Este producto será eliminado permanentemente!",
+            text: "¡Este producto será eliminado!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
