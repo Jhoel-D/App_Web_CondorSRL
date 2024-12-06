@@ -179,26 +179,35 @@ class ProductosPedido(models.Model):
     producto = models.ForeignKey(ProductoInventario, on_delete=models.CASCADE)
     cantidad = models.PositiveIntegerField()
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
+    
     def clean(self):
         # Verificar que haya suficiente stock
         if self.cantidad > self.producto.cantidad_stock:
             raise ValidationError(f"La cantidad supera el stock disponible del producto {self.producto.nombre}.")
 
     def save(self, *args, **kwargs):
-        # Calcular el subtotal basándose en la cantidad y el precio unitario
-        self.subtotal = self.cantidad * self.producto.precio_unitario
-        
-        # Reducir el stock del producto solo al crear un nuevo registro
-        if not self.pk:
+        # Si la instancia ya existe, revertir el stock antes de actualizar
+        if self.pk:
+            instancia_original = ProductosPedido.objects.get(pk=self.pk)
+            diferencia_cantidad = self.cantidad - instancia_original.cantidad
+            self.producto.cantidad_stock -= diferencia_cantidad
+        else:
+            # Reducir el stock al crear una nueva instancia
             self.producto.cantidad_stock -= self.cantidad
-            if self.producto.cantidad_stock < 0:
-                raise ValidationError(f"Stock insuficiente para el producto {self.producto.nombre}.")
-            self.producto.save()
 
+        # Verificar que el stock no sea negativo
+        if self.producto.cantidad_stock < 0:
+            raise ValidationError(f"Stock insuficiente para el producto {self.producto.nombre}.")
+
+        # Guardar el producto actualizado y luego la instancia
+        self.producto.save()
+        # Calcular el subtotal
+        self.subtotal = self.cantidad * self.producto.precio_unitario
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f"{self.cantidad} x {self.producto.nombre} en venta {self.venta.id_venta}"
+    def delete(self, *args, **kwargs):
+        # Devolver el stock del producto al eliminar un registro
+        self.producto.cantidad_stock += self.cantidad
 class Pedidos(models.Model):
     ESTADO_CHOICES = [
         ('PENDIENTE', 'Pendiente'),
@@ -215,26 +224,24 @@ class Pedidos(models.Model):
     lugar_entrega = models.CharField(max_length=100)
     costo_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, editable=False)
     estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='PENDIENTE')
-
+    
     def calcular_costo_total(self):
-        # Sumar los subtotales de los productos de la venta
-        self.costo_total = sum(item.subtotal for item in self.detalle_productos_pedidos.all())
-
+        # Calcular el costo total sumando los subtotales de los productos
+        return sum(item.subtotal for item in self.detalle_productos_pedidos.all())
     def save(self, *args, **kwargs):
-        # Guardar la venta inicialmente
-        super().save(*args, **kwargs)
-        # Calcular el costo total y guardar nuevamente
-        self.calcular_costo_total()
-        super().save(update_fields=['costo_total'])
+        # Guardar la instancia para asignarle un ID si no lo tiene
+        if not self.pk:
+            super().save(*args, **kwargs)  # Guardado inicial
+
+        # Calcular el costo total y actualizar el campo
+        self.costo_total = self.calcular_costo_total()
+        super().save(update_fields=['costo_total'])  # Guardar el costo total actualizado
 
     def __str__(self):
-        return f"Venta {self.id_venta} - Cliente: {self.id_cliente.username}"
-
-#Para Actualizar Total y subtotal de Ventas
+        return f"Pedido {self.id_pedido} - Cliente: {self.id_cliente.username}"
 
 
-
-
+#PARA VENTAS
 @receiver(post_save, sender=ProductosVenta)
 @receiver(post_delete, sender=ProductosVenta)
 def actualizar_costo_total(sender, instance, **kwargs):
@@ -245,7 +252,7 @@ def actualizar_costo_total(sender, instance, **kwargs):
     venta = instance.venta
     venta.calcular_costo_total()
     venta.save()
-    
+#PARA PRODUCTOS
 @receiver(post_save, sender=ProductosPedido)
 @receiver(post_delete, sender=ProductosPedido)
 def actualizar_costo_total(sender, instance, **kwargs):

@@ -82,14 +82,11 @@ class PedidosAdmin(admin.ModelAdmin):
     list_filter = ('estado', 'fecha_registro')
     autocomplete_fields = ['id_cliente', 'id_vendedor']  # Usar nombres correctos de campos
     inlines = [ProductosPedidoInline]  # Permitir agregar productos directamente desde la vista de ventas
-
     def save_model(self, request, obj, form, change):
-        # Calcular costo total automáticamente antes de guardar
-        obj.calcular_costo_total()
+        # No recalcular el costo total aquí, ya que lo maneja el modelo
         super().save_model(request, obj, form, change)
 
 #MOD INGRESOS
-
 @admin.register(IngresoProducto)
 class IngresoProductoAdmin(admin.ModelAdmin):
     list_display = ('id_producto', 'cantidad', 'fecha_ingreso', 'id_usuario')
