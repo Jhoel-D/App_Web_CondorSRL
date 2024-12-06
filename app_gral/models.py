@@ -3,6 +3,9 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.db.models.signals import pre_delete
 
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
         
 class Usuario(AbstractUser):
     CI = models.CharField(max_length=20, unique=True)
@@ -82,16 +85,45 @@ class IngresoProducto(models.Model):
         return f"Ingreso de {self.cantidad} {self.id_producto.nombre}"
 
 class ProductosVenta(models.Model):
-    id_venta_detalle = models.AutoField(primary_key=True)
-    id_producto = models.ForeignKey(ProductoInventario, on_delete=models.CASCADE)
-    cantidad = models.IntegerField()
-    fecha_registro = models.DateTimeField(auto_now_add=True)
-    
+    venta = models.ForeignKey('Ventas', on_delete=models.CASCADE, related_name='detalle_productos')
+    producto = models.ForeignKey(ProductoInventario, on_delete=models.CASCADE)
+    cantidad = models.PositiveIntegerField()
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
+
     def clean(self):
-        if self.cantidad > self.id_producto.cantidad_stock:
-            raise ValidationError("La cantidad supera el stock disponible del producto.")
+        # Verificar que haya suficiente stock
+        if self.cantidad > self.producto.cantidad_stock:
+            raise ValidationError(f"La cantidad supera el stock disponible del producto {self.producto.nombre}.")
+
+    def save(self, *args, **kwargs):
+        # Si la instancia ya existe, revertir el stock antes de actualizar
+        if self.pk:
+            instancia_original = ProductosVenta.objects.get(pk=self.pk)
+            diferencia_cantidad = self.cantidad - instancia_original.cantidad
+            self.producto.cantidad_stock -= diferencia_cantidad
+        else:
+            # Reducir el stock al crear una nueva instancia
+            self.producto.cantidad_stock -= self.cantidad
+
+        # Verificar que el stock no sea negativo
+        if self.producto.cantidad_stock < 0:
+            raise ValidationError(f"Stock insuficiente para el producto {self.producto.nombre}.")
+
+        # Guardar el producto actualizado y luego la instancia
+        self.producto.save()
+        # Calcular el subtotal
+        self.subtotal = self.cantidad * self.producto.precio_unitario
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # Devolver el stock del producto al eliminar un registro
+        self.producto.cantidad_stock += self.cantidad
+        self.producto.save()
+        super().delete(*args, **kwargs)
+
     def __str__(self):
-        return f"Detalle Venta  {self.id_producto.nombre}"
+        return f"{self.cantidad} x {self.producto.nombre} en venta {self.venta.id_venta}"
+
 class Ventas(models.Model):
     ESTADO_CHOICES = [
         ('PENDIENTE', 'Pendiente'),
@@ -99,43 +131,34 @@ class Ventas(models.Model):
         ('CANCELADO', 'Cancelado'),
     ]
     id_venta = models.AutoField(primary_key=True)
-    id_cliente = models.ForeignKey(
-        Usuario, 
-        on_delete=models.CASCADE, 
-        related_name='ventas_como_cliente'
-    )
-    id_vendedor = models.ForeignKey(
-        Usuario, 
-        on_delete=models.CASCADE, 
-        related_name='ventas_como_vendedor'
-    )
-    productos_de_venta = models.ManyToManyField(ProductosVenta, related_name='ventas', blank=True)
+    id_cliente = models.ForeignKey('Usuario', on_delete=models.CASCADE, related_name='ventas_como_cliente')
+    id_vendedor = models.ForeignKey('Usuario', on_delete=models.CASCADE, related_name='ventas_como_vendedor')
     fecha_registro = models.DateTimeField(auto_now_add=True)
     costo_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='PENDIENTE')
 
-    def save(self, *args, **kwargs):
-        # Solo guarda el objeto sin calcular costo_total la primera vez
-        if not self.pk:
-            super().save(*args, **kwargs)
+    def calcular_costo_total(self):
+        # Calcular el costo total sumando los subtotales de los productos
+        return sum(item.subtotal for item in self.detalle_productos.all())
 
-        # Calcula el costo_total después de que la instancia tenga un ID
-        self.costo_total = sum(
-            item.id_producto.precio_unitario * item.cantidad 
-            for item in self.productos_de_venta.all()
-        )
-        super().save(*args, **kwargs)  # Guarda nuevamente con costo_total actualizado
+    def save(self, *args, **kwargs):
+        # Guardar la instancia para asignarle un ID si no lo tiene
+        if not self.pk:
+            super().save(*args, **kwargs)  # Guardado inicial
+
+        # Calcular el costo total y actualizar el campo
+        self.costo_total = self.calcular_costo_total()
+        super().save(update_fields=['costo_total'])  # Guardar el costo total actualizado
 
     def __str__(self):
-        return f"Venta {self.id_venta} - {self.id_cliente.username}"
+        return f"Venta {self.id_venta} - Cliente: {self.id_cliente.username}"
 
-    
+
 class CarritoItems(models.Model):
     id_carrito = models.AutoField(primary_key=True)
     id_cliente = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     id_producto = models.ForeignKey(ProductoInventario, on_delete=models.CASCADE)
     cantidad = models.IntegerField()
-    fecha_añadida = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Carrito {self.id_carrito} - {self.id_producto.nombre}"
@@ -150,55 +173,87 @@ class CarritoItems(models.Model):
         """Calcula el total del carrito de un cliente específico."""
         return sum(item.total_producto for item in cls.objects.filter(id_cliente=cliente))
 
-class ItemsOrderPedido(models.Model): #ItemsOrder
-    id_carrito = models.AutoField(primary_key=True)
-    id_cliente = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    id_producto = models.ForeignKey(ProductoInventario, on_delete=models.CASCADE)
-    cantidad = models.IntegerField()
-    fecha_añadida = models.DateTimeField(auto_now_add=True)
+#MOD PEDIDOS
+class ProductosPedido(models.Model):
+    pedido = models.ForeignKey('Pedidos', on_delete=models.CASCADE, related_name='detalle_productos_pedidos')
+    producto = models.ForeignKey(ProductoInventario, on_delete=models.CASCADE)
+    cantidad = models.PositiveIntegerField()
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
+    def clean(self):
+        # Verificar que haya suficiente stock
+        if self.cantidad > self.producto.cantidad_stock:
+            raise ValidationError(f"La cantidad supera el stock disponible del producto {self.producto.nombre}.")
+
+    def save(self, *args, **kwargs):
+        # Calcular el subtotal basándose en la cantidad y el precio unitario
+        self.subtotal = self.cantidad * self.producto.precio_unitario
+        
+        # Reducir el stock del producto solo al crear un nuevo registro
+        if not self.pk:
+            self.producto.cantidad_stock -= self.cantidad
+            if self.producto.cantidad_stock < 0:
+                raise ValidationError(f"Stock insuficiente para el producto {self.producto.nombre}.")
+            self.producto.save()
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"Carrito {self.id_carrito} - {self.id_producto.nombre}"
-    
-class Pedido(models.Model):  # Orden
+        return f"{self.cantidad} x {self.producto.nombre} en venta {self.venta.id_venta}"
+class Pedidos(models.Model):
     ESTADO_CHOICES = [
         ('PENDIENTE', 'Pendiente'),
         ('COMPLETADO', 'Completado'),
         ('CANCELADO', 'Cancelado'),
     ]
-    BOLIVIAN_DEPARTMENTS = [
-        ('LP', 'La Paz'),
-        ('CBB', 'Cochabamba'),
-        ('SCZ', 'Santa Cruz'),
-        ('OR', 'Oruro'),
-        ('PT', 'Potosí'),
-        ('TJ', 'Tarija'),
-        ('CH', 'Chuquisaca'),
-        ('BE', 'Beni'),
-        ('PD', 'Pando'),
-        ('El Alto', 'El Alto'),
-    ]
     id_pedido = models.AutoField(primary_key=True)
-    id_cliente = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    productos_en_pedido = models.ManyToManyField(ItemsOrderPedido, related_name='orders', blank=True)
+    id_cliente = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='pedidos_como_cliente')
+    id_vendedor = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='pedidos_como_vendedor')
     fecha_registro = models.DateTimeField(auto_now_add=True)
-    monto_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='PENDIENTE')
-    departamento = models.CharField(max_length=100, choices=BOLIVIAN_DEPARTMENTS, default='')
+    beneficiario = models.CharField(max_length=100)
+    monto_pagado = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     celular_a_comunicar = models.CharField(max_length=15)
     lugar_entrega = models.CharField(max_length=100)
+    costo_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, editable=False)
+    estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='PENDIENTE')
+
+    def calcular_costo_total(self):
+        # Sumar los subtotales de los productos de la venta
+        self.costo_total = sum(item.subtotal for item in self.detalle_productos_pedidos.all())
 
     def save(self, *args, **kwargs):
-        # Guarda la instancia por primera vez para asignar un ID
-        if not self.pk:
-            super().save(*args, **kwargs)
-
-        # Calcula el monto total sumando (precio_unitario * cantidad) de cada producto en el pedido
-        self.monto_total = sum(
-            item.id_producto.precio_unitario * item.cantidad
-            for item in self.productos_en_pedido.all()
-        )
-        # Guarda nuevamente con el monto total actualizado
+        # Guardar la venta inicialmente
         super().save(*args, **kwargs)
+        # Calcular el costo total y guardar nuevamente
+        self.calcular_costo_total()
+        super().save(update_fields=['costo_total'])
 
     def __str__(self):
-        return f"Pedido {self.id_pedido} - {self.id_cliente.username}"
+        return f"Venta {self.id_venta} - Cliente: {self.id_cliente.username}"
+
+#Para Actualizar Total y subtotal de Ventas
+
+
+
+
+@receiver(post_save, sender=ProductosVenta)
+@receiver(post_delete, sender=ProductosVenta)
+def actualizar_costo_total(sender, instance, **kwargs):
+    """
+    Recalcula el costo total de la venta asociada cada vez que se agrega,
+    actualiza o elimina un producto en la venta.
+    """
+    venta = instance.venta
+    venta.calcular_costo_total()
+    venta.save()
+    
+@receiver(post_save, sender=ProductosPedido)
+@receiver(post_delete, sender=ProductosPedido)
+def actualizar_costo_total(sender, instance, **kwargs):
+
+    """
+    Recalcula el costo total del pedido asociado cada vez que se agrega,
+    actualiza o elimina un producto en el pedido.
+    """
+    pedido = instance.pedido
+    pedido.calcular_costo_total()
+    pedido.save()

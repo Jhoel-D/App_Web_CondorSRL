@@ -85,7 +85,7 @@ WSGI_APPLICATION = 'sistema_condor_srl.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bd_condor_srl_01',
+        'NAME': 'bd_condor_srl',
         'USER': 'root',
         'PASSWORD': 'root',
         'HOST': 'localhost',
