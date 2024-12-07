@@ -530,7 +530,30 @@ def ver_detalle_venta(request, venta_id):
 
 from .forms import VentasForm, ItemsOrderFormSet
 
+
 def editar_venta(request, venta_id):
+    venta = get_object_or_404(Ventas, pk=venta_id)
+    venta_form = VentasForm(instance=venta)
+    items_formset = ItemsOrderFormSet(queryset=ProductosVenta.objects.filter(venta=venta))
+
+    if request.method == 'POST':
+        venta_form = VentasForm(request.POST, instance=venta)
+        items_formset = ItemsOrderFormSet(request.POST, queryset=ProductosVenta.objects.filter(venta=venta))
+        
+        if venta_form.is_valid() and items_formset.is_valid():
+            venta_form.save()
+            items_formset.save()
+            return redirect('mod_ventas_home')
+
+    # Pasar costo total al contexto
+    costo_total = venta.costo_total
+
+    return render(request, 'ventas/editar_venta.html', {
+        'venta_form': venta_form,
+        'items_formset': items_formset,
+        'costo_total': costo_total,
+    })
+
     # Obtener la venta específica
     venta = get_object_or_404(Ventas, pk=venta_id)
 

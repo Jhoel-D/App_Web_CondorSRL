@@ -1,38 +1,70 @@
 {% extends 'base/base_home.html' %}
 {% block content %}
-<div class="container mt-5 text">
-    <h1 class="text-center fw-bold mb-4">Editar Venta</h1>
+<div class="container mt-5">
+    <div class="text">
+        <h1 class="text-center fw-bold mb-4"><i class="fas fa-shopping-cart"></i> Editar Venta</h1>
+    </div>
     
     <form method="POST" class="row g-4" id="formEditarVenta">
         {% csrf_token %}
-        
-        <!-- Formulario de Venta -->
-        <div class="col-md-12">
-            <h4>Información de la Venta</h4>
-            {{ venta_form.as_p }}
+
+        <!-- Información de la Venta -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información de la Venta</h5>
+            </div>
+            <div class="card-body">
+                {{ venta_form.as_p }}
+                <div class="form-group">
+                    <label for="costo_total" class="fw-bold">Costo Total:</label>
+                    <input type="text" id="costo_total" class="form-control" value="{{ costo_total }}" readonly>
+                </div>
+            </div>
         </div>
 
-        <!-- Formulario de Productos Asociados -->
-        <div class="col-md-12">
-            <h4>Productos Asociados</h4>
-            {{ items_formset.management_form }}
-            {% for form in items_formset %}
-                <div class="border p-3 mb-3">
-                    {{ form.as_p }}
-                    {% if form.instance.pk %}
-                        <label>
-                            <input type="checkbox" name="{{ form.prefix }}-DELETE">
-                            Eliminar
-                        </label>
-                    {% endif %}
+        <!-- Productos Asociados -->
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-boxes"></i> Productos Asociados</h5>
+            </div>
+            <div class="card-body">
+                <!-- Incluir los campos de gestión del formset -->
+                {{ items_formset.management_form }}
+                <div class="row">
+                    {% for form in items_formset %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                {{ form.as_p }}
+                                <div class="form-group">
+                                    <label for="id_subtotal_{{ forloop.counter }}" class="fw-bold">Subtotal:</label>
+                                    <input type="text" id="id_subtotal_{{ forloop.counter }}" class="form-control" 
+                                           value="{{ form.instance.subtotal }}" readonly>
+                                </div>
+                                {% if form.instance.pk %}
+                                <div class="form-check mt-2">
+                                    <input type="checkbox" class="form-check-input" name="{{ form.prefix }}-DELETE" id="delete_{{ forloop.counter }}">
+                                    <label for="delete_{{ forloop.counter }}" class="form-check-label text-danger fw-bold">
+                                        Marcar para eliminar
+                                    </label>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
-            {% endfor %}
+            </div>
         </div>
 
         <!-- Botones -->
-        <div class="col-12 text-center">
-            <button type="submit" class="btn btn-success mt-3">Actualizar Venta</button>
-            <a href="{% url 'mod_ventas_home' %}" class="btn btn-secondary mt-3">Volver al Panel de Ventas</a>
+        <div class="text-center">
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="fas fa-save"></i> Actualizar Venta
+            </button>
+            <a href="{% url 'mod_ventas_home' %}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-arrow-left"></i> Volver al Panel de Ventas
+            </a>
         </div>
     </form>
 </div>

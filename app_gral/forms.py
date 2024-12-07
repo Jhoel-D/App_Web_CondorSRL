@@ -121,6 +121,7 @@ class CategoriaCreateForm(forms.ModelForm):
             'descripcion': forms.Textarea(attrs={'class': 'form-control'}),
         }
 
+from django.forms.models import modelformset_factory
 from django.contrib import admin
 class VentasForm(forms.ModelForm):
     class Meta:
@@ -138,11 +139,15 @@ class VentasForm(forms.ModelForm):
     #         'fecha_registro': forms.DateInput(attrs={'type': 'datetime-local'}),
     #     }
         
-from django.forms.models import modelformset_factory
+
+class ProductosVentaForm(forms.ModelForm):
+    class Meta:
+        model = ProductosVenta
+        fields = ['producto', 'cantidad']
 
 ItemsOrderFormSet = modelformset_factory(
     ProductosVenta,
-    fields=['producto', 'cantidad'],  # Ajusta según tu modelo
-    extra=0,  # No agregar filas adicionales por defecto
-    can_delete=True  # Permitir eliminar productos
+    form=ProductosVentaForm,
+    extra=0,
+    can_delete=True
 )
