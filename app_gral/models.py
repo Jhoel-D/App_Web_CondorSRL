@@ -1,9 +1,9 @@
 from django.contrib.auth.models import AbstractUser
-from django.db import models
+from django.db import models, transaction
 from django.core.exceptions import ValidationError
-from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_delete, post_save, post_delete
 
-from django.db.models.signals import post_save, post_delete
+
 from django.dispatch import receiver
 
         
@@ -83,7 +83,7 @@ class IngresoProducto(models.Model):
             raise ValidationError("La cantidad de ingreso debe ser mayor a cero.")
     def __str__(self):
         return f"Ingreso de {self.cantidad} {self.id_producto.nombre}"
-
+#MOD VENTAS
 class ProductosVenta(models.Model):
     venta = models.ForeignKey('Ventas', on_delete=models.CASCADE, related_name='detalle_productos')
     producto = models.ForeignKey(ProductoInventario, on_delete=models.CASCADE)
@@ -91,10 +91,17 @@ class ProductosVenta(models.Model):
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
 
     def clean(self):
+        # Obtener la instancia previa si existe
+        if self.pk:
+           instancia_original = ProductosVenta.objects.get(pk=self.pk)
+           diferencia_cantidad = self.cantidad - instancia_original.cantidad
+        else:
+            diferencia_cantidad = self.cantidad
         # Verificar que haya suficiente stock
-        if self.cantidad > self.producto.cantidad_stock:
-            raise ValidationError(f"La cantidad supera el stock disponible del producto {self.producto.nombre}.")
-
+        if diferencia_cantidad > self.producto.cantidad_stock:
+           raise ValidationError(f"La cantidad supera el stock disponible del producto {self.producto.nombre}. El Stock actual es {self.producto.cantidad_stock}.")
+    
+    @transaction.atomic
     def save(self, *args, **kwargs):
         # Si la instancia ya existe, revertir el stock antes de actualizar
         if self.pk:
@@ -114,7 +121,8 @@ class ProductosVenta(models.Model):
         # Calcular el subtotal
         self.subtotal = self.cantidad * self.producto.precio_unitario
         super().save(*args, **kwargs)
-
+    
+    @transaction.atomic
     def delete(self, *args, **kwargs):
         # Devolver el stock del producto al eliminar un registro
         self.producto.cantidad_stock += self.cantidad
@@ -140,7 +148,7 @@ class Ventas(models.Model):
     def calcular_costo_total(self):
         # Calcular el costo total sumando los subtotales de los productos
         return sum(item.subtotal for item in self.detalle_productos.all())
-
+    @transaction.atomic
     def save(self, *args, **kwargs):
         # Guardar la instancia para asignarle un ID si no lo tiene
         if not self.pk:
@@ -180,11 +188,18 @@ class ProductosPedido(models.Model):
     cantidad = models.PositiveIntegerField()
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
     
-    def clean(self):
-        # Verificar que haya suficiente stock
-        if self.cantidad > self.producto.cantidad_stock:
-            raise ValidationError(f"La cantidad supera el stock disponible del producto {self.producto.nombre}.")
 
+    def clean(self):
+        # Obtener la instancia previa si existe
+        if self.pk:
+           instancia_original = ProductosPedido.objects.get(pk=self.pk)
+           diferencia_cantidad = self.cantidad - instancia_original.cantidad
+        else:
+            diferencia_cantidad = self.cantidad
+        # Verificar que haya suficiente stock
+        if diferencia_cantidad > self.producto.cantidad_stock:
+           raise ValidationError(f"La cantidad supera el stock disponible del producto {self.producto.nombre}. El Stock actual es {self.producto.cantidad_stock}.")
+    @transaction.atomic
     def save(self, *args, **kwargs):
         # Si la instancia ya existe, revertir el stock antes de actualizar
         if self.pk:
@@ -228,6 +243,8 @@ class Pedidos(models.Model):
     def calcular_costo_total(self):
         # Calcular el costo total sumando los subtotales de los productos
         return sum(item.subtotal for item in self.detalle_productos_pedidos.all())
+    
+    @transaction.atomic
     def save(self, *args, **kwargs):
         # Guardar la instancia para asignarle un ID si no lo tiene
         if not self.pk:
@@ -242,6 +259,7 @@ class Pedidos(models.Model):
 
 
 #PARA VENTAS
+@transaction.atomic
 @receiver(post_save, sender=ProductosVenta)
 @receiver(post_delete, sender=ProductosVenta)
 def actualizar_costo_total(sender, instance, **kwargs):
@@ -252,15 +270,11 @@ def actualizar_costo_total(sender, instance, **kwargs):
     venta = instance.venta
     venta.calcular_costo_total()
     venta.save()
-#PARA PRODUCTOS
+#PARA PEDIDOS
+@transaction.atomic
 @receiver(post_save, sender=ProductosPedido)
 @receiver(post_delete, sender=ProductosPedido)
 def actualizar_costo_total(sender, instance, **kwargs):
-
-    """
-    Recalcula el costo total del pedido asociado cada vez que se agrega,
-    actualiza o elimina un producto en el pedido.
-    """
     pedido = instance.pedido
     pedido.calcular_costo_total()
     pedido.save()

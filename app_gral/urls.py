@@ -47,7 +47,9 @@ urlpatterns = [
     
     #MOD VENTAS
     path('ventas/', views.mod_ventas_home, name='mod_ventas_home'),
-    
+    path('ventas/<int:venta_id>/productos/', views.ver_productos_venta, name='ver_productos_venta'),
+    path('venta/<int:venta_id>/detalle/', views.ver_detalle_venta, name='ver_detalle_venta'),
+    path('ventas/editar/<int:venta_id>/', views.editar_venta, name='editar_venta'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

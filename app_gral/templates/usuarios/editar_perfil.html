@@ -2,7 +2,7 @@
 {% load static %}
 {% load crispy_forms_tags %}
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-5 text">
     <h1 class="text-center fw-bold mb-4 text-primary">Editar Perfil</h1>
     <div class="row justify-content-center">
         <div class="col-md-10">
@@ -20,7 +20,11 @@
                         </div>
                         <div class="col-md-6">
                             <h5 class="text-secondary">Información Adicional</h5>
-                            {{ form.fecha_nacimiento|as_crispy_field }}
+                            <div class="form-group">
+                                <label for="id_fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                                <input type="date" class="form-control" id="id_fecha_nacimiento" name="fecha_nacimiento" value="{{ form.fecha_nacimiento.value|date:'Y-m-d' }}" required>
+                            </div>
+                            <!-- {{ form.fecha_nacimiento|as_crispy_field }} -->
                             <div class="mb-3">
                                 <label for="imagen_perfil" class="form-label">Imagen de Perfil</label>
                                 {% if user.imagen_perfil %}
@@ -32,7 +36,6 @@
                             </div>
                             {{ form.imagen_perfil|as_crispy_field }}
                         </div>
-                        
                     </div>
                     <div class="text-center mt-4">
                         <button type="submit" class="btn btn-primary btn-lg me-3">

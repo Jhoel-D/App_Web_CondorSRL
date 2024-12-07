@@ -60,12 +60,11 @@ class VentasAdmin(admin.ModelAdmin):
     list_filter = ('estado', 'fecha_registro')
     autocomplete_fields = ['id_cliente', 'id_vendedor']
     inlines = [ProductosVentaInline]
-
+    
     def save_model(self, request, obj, form, change):
         # No recalcular el costo total aquí, ya que lo maneja el modelo
         super().save_model(request, obj, form, change)
 
-        
 #MOD PEDIDOS
 class ProductosPedidoInline(admin.TabularInline):
     model = ProductosPedido
@@ -85,7 +84,7 @@ class PedidosAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         # No recalcular el costo total aquí, ya que lo maneja el modelo
         super().save_model(request, obj, form, change)
-
+        
 #MOD INGRESOS
 @admin.register(IngresoProducto)
 class IngresoProductoAdmin(admin.ModelAdmin):

@@ -1,0 +1,116 @@
+{% extends 'base/base_home.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-5">
+    <div class="text">
+        <h1 class="text-center fw-bold mb-4"><i class="fas fa-shopping-cart"></i> Detalles de la Venta</h1>
+    </div>
+    
+    <!-- Detalles de la venta -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información de la Venta</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>ID de Venta:</strong> {{ venta.id_venta }}</p>
+            <p><strong>Estado:</strong> {{ venta.estado }}</p>
+            <p><strong>Total de la :</strong> {{ venta.costo_total }} Bs</p>
+        </div>
+    </div>
+
+    <!-- Productos asociados a la venta -->
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="fas fa-boxes"></i> Items de la Orden</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for producto in productos %}
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        {% if producto.producto.imagen_producto %}
+                        <div class="d-flex justify-content-center align-items-center">
+                           <img src="{{ producto.producto.imagen_producto.url }}" class="d-block img-fluid" alt="{{ producto.producto.nombre }}" style="height: 300px;">
+                        </div>
+                        {% else %}
+                        <div class="d-flex justify-content-center align-items-center">
+                            <img src="{% static '/logo.jpg' %}"class="d-block img-fluid" style="height: 300px;"">
+                        </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ producto.producto.nombre }}</h5>
+                            <p class="card-text"><strong>Cantidad:</strong> {{ producto.cantidad }}</p>
+                            <p class="card-text"><strong>Precio:</strong> {{ producto.producto.precio_unitario }} Bs</p>
+                            <p class="card-text"><strong>Subtotal:</strong> {{ producto.subtotal }} Bs</p>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <p class="text-center">No se encontraron productos en esta venta.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive mt-4">
+    <table class="table table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre del Producto</th>
+                <th>Imagen</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for producto in productos %}
+            <tr>
+                <td>{{ producto.id }}</td>
+                <td>{{ producto.producto.nombre }}</td>
+
+                <td>
+                    {% if producto.producto.imagen_producto %}
+                        <img src="{{ producto.producto.imagen_producto.url }}" alt="{{ producto.producto.nombre }}" width="60">
+                    {% else %}
+                        No disponible
+                    {% endif %}
+                </td>
+
+                <td>{{ producto.cantidad }}</td>
+                <td>{{ producto.producto.precio_unitario }} Bs</td>
+                <td>{{ producto.subtotal }} Bs</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center">No se encontraron productos en esta venta.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+    <!-- Dirección de Envío -->
+    <!-- <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Dirección de Envío</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>Dirección:</strong> {{ venta.direccion_envio }}</p>
+            <p><strong>Nombre:</strong> {{ venta.id_cliente.first_name }} {{ venta.id_cliente.last_name }}</p>
+            <p><strong>País:</strong> {{ venta.pais }}</p>
+            <p><strong>Departamento:</strong> {{ venta.departamento }}</p>
+            <p><strong>Zona:</strong> {{ venta.zona }}</p>
+            <p><strong>Método de Envío:</strong> {{ venta.metodo_envio }}</p>
+        </div>
+    </div> -->
+
+    <!-- Botón para regresar -->
+    <div class="mt-4 text-center">
+        <a href="{% url 'mod_ventas_home' %}" class="btn btn-dark">
+            <i class="fas fa-arrow-left"></i> Regresar
+        </a>
+    </div>
+</div>
+{% endblock %}

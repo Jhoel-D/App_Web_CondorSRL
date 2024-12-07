@@ -24,7 +24,7 @@
                     <th>ID</th>
                     <th>Cliente</th>
                     <th>Producto</th>
-                    <th>Total Pagado</th>
+                    <th>Costo Total</th>
                     <th>Fecha de registro</th>
                     <th>Acciones</th>
                 </tr>
@@ -35,19 +35,21 @@
                     <td>{{ ventas.id_venta }}</td>
                     <td>{{ ventas.id_cliente.first_name }} {{ ventas.id_cliente.last_name }}</td>
                     <td>
-                        <a href="#" class="btn btn-success"> 
-                              <i class="bx bx-store icon"></i> Ver Productos
+                        <a href="{% url 'ver_productos_venta' ventas.id_venta %}" class="btn btn-success">
+                            <i class="bx bx-store icon"></i> Ver Productos
+                        </a>
                     </td>
-                    <td>{{ ventas.costo_total }}</td>
+                    
+                    <td>{{ ventas.costo_total }} Bs</td>
                     <td>{{ ventas.fecha_registro|date:"d-m-Y H:i" }}</td>
                     
 
                     <td>
                         <div class="d-flex justify-content-center">
-                            <a href="" class="btn btn-info btn-sm me-2"> 
+                            <a href="{% url 'ver_detalle_venta' ventas.id_venta %}" class="btn btn-info btn-sm me-2" title="Ver"> 
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="" class="btn btn-warning btn-sm me-2" title="Editar"> 
+                            <a href="{% url 'editar_venta' ventas.id_venta %}" class="btn btn-warning btn-sm me-2" title="Editar"> 
                                 <i class="fas fa-edit"></i>
                             </a>
                             <a href="javascript:void(0);" 
@@ -93,5 +95,23 @@
     </nav>
 </div>
 
-
+<script>
+    function deleteUsuario(ventasId) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¡Esta venta será eliminada!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminarlo',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Redirigir a la URL de eliminación (con el ID del producto)
+                window.location.href = "".replace("0", ventasId);
+            }
+        });
+    }
+</script>
 {% endblock %}

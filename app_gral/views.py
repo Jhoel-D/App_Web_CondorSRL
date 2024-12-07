@@ -489,7 +489,6 @@ def mod_ventas_home(request):
     if search_term:
         ventas = ventas.filter(
             
-            Q(departamento__icontains=search_term) |
             Q(id_venta__icontains=search_term)
         )
 
@@ -501,4 +500,63 @@ def mod_ventas_home(request):
     return render(request, 'ventas/mod_ventas_home.html', {
         'ventas': ventas_page,
         'search_term': search_term
+    })
+
+def ver_productos_venta(request, venta_id):
+    # Obtener la venta y los productos relacionados
+    venta = get_object_or_404(Ventas, id_venta=venta_id)
+    productos = ProductosVenta.objects.filter(venta=venta)  # Suponiendo que DetalleVenta enlaza venta y productos
+    
+    context = {
+        'venta': venta,
+        'productos': productos,
+    }
+    return render(request, 'ventas/ver_productos_venta.html', context)
+
+
+
+def ver_detalle_venta(request, venta_id):
+    # Obtener la venta y los productos asociados
+    venta = get_object_or_404(Ventas, id_venta=venta_id)
+    productos = ProductosVenta.objects.filter(venta=venta)
+    
+    context = {
+        'venta': venta,
+        'productos': productos,
+    }
+    return render(request, 'ventas/ver_detalle_venta.html', context)
+
+
+
+from .forms import VentasForm, ItemsOrderFormSet
+
+def editar_venta(request, venta_id):
+    # Obtener la venta específica
+    venta = get_object_or_404(Ventas, pk=venta_id)
+
+    # Obtener los productos relacionados con la venta
+    items = ProductosVenta.objects.filter(venta=venta)
+
+    if request.method == "POST":
+        # Formularios para la venta y los productos
+        venta_form = VentasForm(request.POST, instance=venta)
+        items_formset = ItemsOrderFormSet(request.POST, queryset=items, prefix='items')
+
+        if venta_form.is_valid() and items_formset.is_valid():
+            # Guardar la venta
+            venta_form.save()
+
+            # Guardar los productos asociados
+            items_formset.save()
+
+            messages.success(request, "La venta se ha actualizado correctamente.")
+            return redirect('mod_ventas_home')  # Redirige al panel de ventas
+    else:
+        # Instanciar formularios en modo GET
+        venta_form = VentasForm(instance=venta)
+        items_formset = ItemsOrderFormSet(queryset=items, prefix='items')
+
+    return render(request, 'ventas/editar_venta.html', {
+        'venta_form': venta_form,
+        'items_formset': items_formset,
     })

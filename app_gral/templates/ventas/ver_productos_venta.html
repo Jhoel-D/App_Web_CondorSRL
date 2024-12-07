@@ -1,0 +1,56 @@
+{% extends 'base/base_home.html' %}
+
+{% block content %}
+<div class="container mt-5 text">
+    <h1 class="text-center fw-bold mb-4">Productos de la Venta</h1>
+    <p class="text-left fw-bold mb-4">Venta ID: {{ venta.id_venta }}</p>
+    <p class="text-left fw-bold mb-4">Cliente: {{ venta.id_cliente.first_name }} {{ venta.id_cliente.last_name }}</p>
+
+    <!-- Tabla de productos -->
+    <div class="table-responsive mt-4">
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre del Producto</th>
+                    <th>Imagen</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr>
+                    <td>{{ producto.id }}</td>
+                    <td>{{ producto.producto.nombre }}</td>
+
+                    <td>
+                        {% if producto.producto.imagen_producto %}
+                            <img src="{{ producto.producto.imagen_producto.url }}" alt="{{ producto.producto.nombre }}" width="60">
+                        {% else %}
+                            No disponible
+                        {% endif %}
+                    </td>
+
+                    <td>{{ producto.cantidad }}</td>
+                    <td>{{ producto.producto.precio_unitario }} Bs</td>
+                    <td>{{ producto.subtotal }} Bs</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No se encontraron productos en esta venta.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Botón para regresar -->
+    <div class="text-end mt-4">
+        <a href="{% url 'mod_ventas_home' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Regresar
+        </a>
+    </div>
+</div>
+{% endblock %}

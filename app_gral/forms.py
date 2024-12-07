@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User, Group
 
-from .models import Usuario, ProductoInventario, Categoria, Usuario
+from .models import Usuario, ProductoInventario, Categoria, Usuario, Ventas, ProductosVenta
 
 class UsuarioUpdateForm(forms.ModelForm):
     class Meta:
@@ -10,7 +10,7 @@ class UsuarioUpdateForm(forms.ModelForm):
         widgets = {
             'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}),
         }
-
+        
     telefono = forms.CharField(max_length=15, required=False)
     domicilio = forms.CharField(max_length=255, required=False)
     fecha_nacimiento = forms.DateField(required=False)
@@ -120,3 +120,29 @@ class CategoriaCreateForm(forms.ModelForm):
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control'}),
         }
+
+from django.contrib import admin
+class VentasForm(forms.ModelForm):
+    class Meta:
+        model = Ventas
+        fields = ['id_cliente', 'costo_total']
+        widgets = {
+            'costo_total': forms.TextInput(attrs={'readonly': 'readonly'}),  # Campo de solo lectura
+            'fecha_registro': forms.DateInput(attrs={'type': 'datetime-local'}),
+        }
+    # class Meta:
+    #     model = Ventas
+    #     fields = ['id_cliente', 'costo_total']  # Ajusta según los campos de tu modelo
+    #     readonly_fields = ['costo_total']
+    #     widgets = {
+    #         'fecha_registro': forms.DateInput(attrs={'type': 'datetime-local'}),
+    #     }
+        
+from django.forms.models import modelformset_factory
+
+ItemsOrderFormSet = modelformset_factory(
+    ProductosVenta,
+    fields=['producto', 'cantidad'],  # Ajusta según tu modelo
+    extra=0,  # No agregar filas adicionales por defecto
+    can_delete=True  # Permitir eliminar productos
+)
