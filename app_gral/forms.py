@@ -128,22 +128,24 @@ class VentasForm(forms.ModelForm):
         model = Ventas
         fields = ['id_cliente', 'costo_total']
         widgets = {
-            'costo_total': forms.TextInput(attrs={'readonly': 'readonly'}),  # Campo de solo lectura
-            'fecha_registro': forms.DateInput(attrs={'type': 'datetime-local'}),
+            'costo_total': forms.TextInput(attrs={'readonly': 'readonly'}),
         }
-    # class Meta:
-    #     model = Ventas
-    #     fields = ['id_cliente', 'costo_total']  # Ajusta según los campos de tu modelo
-    #     readonly_fields = ['costo_total']
-    #     widgets = {
-    #         'fecha_registro': forms.DateInput(attrs={'type': 'datetime-local'}),
-    #     }
-        
 
 class ProductosVentaForm(forms.ModelForm):
     class Meta:
         model = ProductosVenta
         fields = ['producto', 'cantidad']
+        widgets = {
+            'producto': forms.Select(attrs={'class': 'form-control'}),
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+    
+    def clean_producto(self):
+        producto = self.cleaned_data.get('producto')
+        if not producto:
+            raise forms.ValidationError("El campo producto no puede estar vacío.")
+        return producto
+
 
 ItemsOrderFormSet = modelformset_factory(
     ProductosVenta,

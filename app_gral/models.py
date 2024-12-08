@@ -3,7 +3,6 @@ from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from django.db.models.signals import pre_delete, post_save, post_delete
 
-
 from django.dispatch import receiver
 
         
@@ -136,7 +135,6 @@ class Ventas(models.Model):
     ESTADO_CHOICES = [
         ('PENDIENTE', 'Pendiente'),
         ('COMPLETADO', 'Completado'),
-        ('CANCELADO', 'Cancelado'),
     ]
     id_venta = models.AutoField(primary_key=True)
     id_cliente = models.ForeignKey('Usuario', on_delete=models.CASCADE, related_name='ventas_como_cliente')
@@ -144,19 +142,25 @@ class Ventas(models.Model):
     fecha_registro = models.DateTimeField(auto_now_add=True)
     costo_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='PENDIENTE')
+    is_active = models.BooleanField(default=True)
 
     def calcular_costo_total(self):
         # Calcular el costo total sumando los subtotales de los productos
         return sum(item.subtotal for item in self.detalle_productos.all())
+    # @transaction.atomic
+    # def save(self, *args, **kwargs):
+    #     # Guardar la instancia para asignarle un ID si no lo tiene
+    #     if not self.pk:
+    #         super().save(*args, **kwargs)  # Guardado inicial
+
+    #     # Calcular el costo total y actualizar el campo
+    #     self.costo_total = self.calcular_costo_total()
+    #     super().save(update_fields=['costo_total'])  # Guardar el costo total actualizado
     @transaction.atomic
     def save(self, *args, **kwargs):
-        # Guardar la instancia para asignarle un ID si no lo tiene
-        if not self.pk:
-            super().save(*args, **kwargs)  # Guardado inicial
-
-        # Calcular el costo total y actualizar el campo
-        self.costo_total = self.calcular_costo_total()
-        super().save(update_fields=['costo_total'])  # Guardar el costo total actualizado
+        if self.pk:  # Si la venta ya existe, recalcula el costo total solo si los productos cambian
+            self.costo_total = self.calcular_costo_total()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Venta {self.id_venta} - Cliente: {self.id_cliente.username}"

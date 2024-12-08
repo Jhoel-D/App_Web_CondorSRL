@@ -13,46 +13,15 @@
         </div>
         <div class="card-body">
             <p><strong>ID de Venta:</strong> {{ venta.id_venta }}</p>
+            <p><strong>Cliente :</strong> {{ venta.id_cliente.first_name }} {{ venta.id_cliente.last_name }} Bs</p>
+            <p><strong>Fecha de Venta:</strong> {{ venta.fecha_registro }}</p>
             <p><strong>Estado:</strong> {{ venta.estado }}</p>
-            <p><strong>Total de la :</strong> {{ venta.costo_total }} Bs</p>
+            <p><strong>Total de la Venta :</strong> {{ venta.costo_total }} Bs</p>
         </div>
     </div>
 
     <!-- Productos asociados a la venta -->
-    <div class="card">
-        <div class="card-header bg-secondary text-white">
-            <h5 class="mb-0"><i class="fas fa-boxes"></i> Items de la Orden</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                {% for producto in productos %}
-                <div class="col-md-4 mb-3">
-                    <div class="card">
-                        {% if producto.producto.imagen_producto %}
-                        <div class="d-flex justify-content-center align-items-center">
-                           <img src="{{ producto.producto.imagen_producto.url }}" class="d-block img-fluid" alt="{{ producto.producto.nombre }}" style="height: 300px;">
-                        </div>
-                        {% else %}
-                        <div class="d-flex justify-content-center align-items-center">
-                            <img src="{% static '/logo.jpg' %}"class="d-block img-fluid" style="height: 300px;"">
-                        </div>
-                        {% endif %}
-                        <div class="card-body">
-                            <h5 class="card-title">{{ producto.producto.nombre }}</h5>
-                            <p class="card-text"><strong>Cantidad:</strong> {{ producto.cantidad }}</p>
-                            <p class="card-text"><strong>Precio:</strong> {{ producto.producto.precio_unitario }} Bs</p>
-                            <p class="card-text"><strong>Subtotal:</strong> {{ producto.subtotal }} Bs</p>
-                        </div>
-                    </div>
-                </div>
-                {% empty %}
-                <div class="col-12">
-                    <p class="text-center">No se encontraron productos en esta venta.</p>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
+    
     <div class="table-responsive mt-4">
     <table class="table table-hover align-middle">
         <thead class="table-dark">

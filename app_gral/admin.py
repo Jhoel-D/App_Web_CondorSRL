@@ -54,16 +54,18 @@ class ProductosVentaInline(admin.TabularInline):
 
 @admin.register(Ventas)
 class VentasAdmin(admin.ModelAdmin):
-    list_display = ('id_venta', 'id_cliente', 'id_vendedor', 'estado', 'fecha_registro', 'costo_total')
-    readonly_fields = ('costo_total',)
+    list_display = ('id_venta', 'id_cliente', 'id_vendedor', 'estado', 'fecha_registro', 'costo_total', 'is_active')
+    readonly_fields = ('costo_total',)  # Permitir solo lectura en el costo total
     search_fields = ('id_cliente__username', 'id_vendedor__username')
     list_filter = ('estado', 'fecha_registro')
     autocomplete_fields = ['id_cliente', 'id_vendedor']
     inlines = [ProductosVentaInline]
-    
+
     def save_model(self, request, obj, form, change):
-        # No recalcular el costo total aquí, ya que lo maneja el modelo
+        # Recalcular el costo total al guardar desde el admin
+        obj.costo_total = obj.calcular_costo_total()
         super().save_model(request, obj, form, change)
+
 
 #MOD PEDIDOS
 class ProductosPedidoInline(admin.TabularInline):

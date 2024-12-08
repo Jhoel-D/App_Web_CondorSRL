@@ -13,7 +13,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
-from .forms import UsuarioUpdateForm, ProductoInventarioForm, ProductoInventarioCreateForm, UsuarioForm, UsuarioCreateForm, CategoriaForm, CategoriaCreateForm
+from .forms import UsuarioUpdateForm, ProductoInventarioForm, ProductoInventarioCreateForm, UsuarioForm, UsuarioCreateForm, CategoriaForm, CategoriaCreateForm, ProductosVentaForm, VentasForm
 
 
 # Create your views here.
@@ -46,37 +46,7 @@ def iniciar_sesion(request):
 def cerrar_sesion (request):
     logout(request)
     return redirect ('menu_principal')  
-
-#MOD 1 USUARIOS
-# @login_required
-# def mod_usuarios_home(request):
-#     # Obtener el grupo "Cliente"
-#     grupo_clientes = Group.objects.get(name='Cliente')
-
-#     # Excluir usuarios del grupo "Cliente"
-#     usuarios = Usuario.objects.exclude(groups=grupo_clientes)
-
-#     # Filtro de búsqueda
-#     search_term = request.GET.get('search', '')
-#     if search_term:
-#         usuarios = usuarios.filter(
-#             Q(first_name__icontains=search_term) |
-#             Q(last_name__icontains=search_term) |
-#             Q(CI__icontains=search_term) |
-#             Q(username__icontains=search_term)
-#         )
-
-#     # Paginación
-#     paginator = Paginator(usuarios, 10)  # Mostrar 8 usuarios por página
-#     page_number = request.GET.get('page')
-#     usuarios_page = paginator.get_page(page_number)
-
-#     # Renderizar la plantilla con los usuarios paginados
-#     return render(request, 'usuarios/mod_personal/mod_usuarios_home.html', {
-#         'usuarios': usuarios_page,
-#         'search_term': search_term
-#     })
-
+#MOD USUARIOS
 @login_required
 def mod_usuarios_home(request):
     # Obtener el grupo "Cliente"
@@ -484,7 +454,8 @@ def crear_categoria(request):
 @login_required  
 def mod_ventas_home(request):
     # Obtener las ventas
-    ventas = Ventas.objects.all()
+    # ventas = Ventas.objects.all()
+    ventas = Ventas.objects.filter(is_active=True)
     search_term = request.GET.get('search', '')
     if search_term:
         ventas = ventas.filter(
@@ -527,59 +498,83 @@ def ver_detalle_venta(request, venta_id):
     return render(request, 'ventas/ver_detalle_venta.html', context)
 
 
-
-from .forms import VentasForm, ItemsOrderFormSet
-
-
+# views.py
+from django.forms import modelformset_factory
 def editar_venta(request, venta_id):
-    venta = get_object_or_404(Ventas, pk=venta_id)
-    venta_form = VentasForm(instance=venta)
-    items_formset = ItemsOrderFormSet(queryset=ProductosVenta.objects.filter(venta=venta))
-
-    if request.method == 'POST':
+    # Obtener la venta existente
+    venta = get_object_or_404(Ventas, id_venta=venta_id)
+    ItemFormSet = modelformset_factory(
+        ProductosVenta, form=ProductosVentaForm, extra=1, can_delete=True
+    )
+    
+    if request.method == "POST":
         venta_form = VentasForm(request.POST, instance=venta)
-        items_formset = ItemsOrderFormSet(request.POST, queryset=ProductosVenta.objects.filter(venta=venta))
+        items_formset = ItemFormSet(
+            request.POST,
+            queryset=ProductosVenta.objects.filter(venta=venta)
+        )
         
         if venta_form.is_valid() and items_formset.is_valid():
+            # Primero, manejar eliminaciones
+            for form in items_formset.deleted_forms:
+                if form.instance.pk:  # Asegurarse de que el objeto exista en la BD
+                    form.instance.delete()
+                else:
+                    form.save(commit=False).delete()
+
+            # Luego, procesar los formularios restantes
+            for form in items_formset:
+                if form.cleaned_data.get('DELETE', False):  # Omite eliminados
+                    continue
+
+                producto_venta = form.save(commit=False)
+                producto_venta.venta = venta
+
+                # Validar que el producto exista y esté asociado correctamente
+                producto = form.cleaned_data.get('producto')
+                if producto:
+                    try:
+                        producto_venta.producto = ProductoInventario.objects.get(
+                            id_producto=producto.id_producto
+                        )
+                    except ProductoInventario.DoesNotExist:
+                        form.add_error('producto', 'El producto relacionado ya no existe.')
+                        continue
+                else:
+                    form.add_error('producto', 'El campo producto es obligatorio.')
+                    continue
+
+                # Guardar producto de la venta
+                producto_venta.save()
+
+            # Guardar la venta después de procesar los productos
             venta_form.save()
-            items_formset.save()
-            return redirect('mod_ventas_home')
 
-    # Pasar costo total al contexto
-    costo_total = venta.costo_total
-
-    return render(request, 'ventas/editar_venta.html', {
-        'venta_form': venta_form,
-        'items_formset': items_formset,
-        'costo_total': costo_total,
-    })
-
-    # Obtener la venta específica
-    venta = get_object_or_404(Ventas, pk=venta_id)
-
-    # Obtener los productos relacionados con la venta
-    items = ProductosVenta.objects.filter(venta=venta)
-
-    if request.method == "POST":
-        # Formularios para la venta y los productos
-        venta_form = VentasForm(request.POST, instance=venta)
-        items_formset = ItemsOrderFormSet(request.POST, queryset=items, prefix='items')
-
-        if venta_form.is_valid() and items_formset.is_valid():
-            # Guardar la venta
-            venta_form.save()
-
-            # Guardar los productos asociados
-            items_formset.save()
-
-            messages.success(request, "La venta se ha actualizado correctamente.")
-            return redirect('mod_ventas_home')  # Redirige al panel de ventas
+            # Redirigir al editar venta
+            return redirect('editar_venta', venta_id=venta.id_venta)
+            
     else:
-        # Instanciar formularios en modo GET
+        # Si es un GET, inicializa los formularios
         venta_form = VentasForm(instance=venta)
-        items_formset = ItemsOrderFormSet(queryset=items, prefix='items')
+        items_formset = ItemFormSet(
+            queryset=ProductosVenta.objects.filter(venta=venta)
+        )
 
+    # Renderizar el template con los formularios
     return render(request, 'ventas/editar_venta.html', {
         'venta_form': venta_form,
         'items_formset': items_formset,
+        'costo_total': venta.calcular_costo_total()
     })
+
+def dar_de_baja_venta(request, venta_id):
+    venta = get_object_or_404(Ventas, id_venta=venta_id)
+    if venta.is_active == True:
+        venta.is_active = False
+        estado = "Dado de baja"
+    else:
+        venta.is_active = True
+        estado = "Activo"
+    venta.save()
+    messages.success(request, f'Venta {estado} exitosamente.')
+    return redirect('mod_ventas_home')

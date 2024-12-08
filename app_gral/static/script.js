@@ -39,7 +39,7 @@ toggle.addEventListener("click", () => {
     sidebar.classList.toggle("close");
 });
 
-// Eliminar la clase close del sidebar al hacer clic en el campo de búsqueda
-searchBtn.addEventListener("click", () => {
-    sidebar.classList.remove("close");
-});
+// // Eliminar la clase close del sidebar al hacer clic en el campo de búsqueda
+// searchBtn.addEventListener("click", () => {
+//     sidebar.classList.remove("close");
+// });
