@@ -589,3 +589,72 @@ def imprimir_venta(request, venta_id):
         'ventas': ventas,
         'productos': productos,
     })
+
+def add_sale(request):
+    if request.method == 'POST':
+        venta_form = VentaForm(request.POST)
+
+        if venta_form.is_valid():
+            venta = venta_form.save(commit=False)
+            venta.save()
+            
+            # Procesar los productos enviados desde el formulario
+            productos_data = request.POST.getlist('productos[]')
+            cantidades_data = request.POST.getlist('cantidades[]')
+            precios_data = request.POST.getlist('precios[]')
+            
+            for nombre, cantidad, precio in zip(productos_data, cantidades_data, precios_data):
+                if nombre and cantidad and precio:
+                    producto = ProductoInventario(
+                        venta=venta,
+                        nombre=nombre,
+                        cantidad=int(cantidad),
+                        precio_unitario=float(precio)
+                    )
+                    producto.save()
+            
+            return redirect('some_success_url')
+    else:
+        venta_form = VentasForm()
+
+    return render(request, 'ventas/add_sale.html', {'venta_form': venta_form})
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.db import transaction
+from .models import Ventas, ProductosVenta, ProductoInventario
+from .forms import VentasForm
+
+@login_required
+@transaction.atomic
+def crear_venta(request):
+    if request.method == 'POST':
+        venta_form = VentasForm(request.POST)
+        if venta_form.is_valid():
+            # Crear la venta, asignando el vendedor al usuario logueado
+            venta = venta_form.save(commit=False)
+            venta.id_vendedor = request.user  # Asigna el usuario logueado como vendedor
+            venta.save()
+
+            # Procesar los productos relacionados
+            productos_data = request.POST.getlist('productos[]')
+            for producto_data in productos_data:
+                producto_id = producto_data.get('producto_id')
+                cantidad = int(producto_data.get('cantidad'))
+                try:
+                    producto = ProductoInventario.objects.get(pk=producto_id)
+                    ProductosVenta.objects.create(
+                        venta=venta,
+                        producto=producto,
+                        cantidad=cantidad,
+                    )
+                except ProductoInventario.DoesNotExist:
+                    return JsonResponse({'error': f"Producto con ID {producto_id} no existe"}, status=400)
+
+            return redirect('mod_ventas_home')
+            # return JsonResponse({'success': True, 'redirect_url': '/ventas/'})
+        else:
+            return JsonResponse({'success': False, 'errors': venta_form.errors}, status=400)
+    else:
+        venta_form = VentasForm()
+        return render(request, 'ventas/crear_venta.html', {'form': venta_form})

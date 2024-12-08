@@ -165,7 +165,6 @@ class Ventas(models.Model):
     def __str__(self):
         return f"Venta {self.id_venta} - Cliente: {self.id_cliente.username}"
 
-
 class CarritoItems(models.Model):
     id_carrito = models.AutoField(primary_key=True)
     id_cliente = models.ForeignKey(Usuario, on_delete=models.CASCADE)

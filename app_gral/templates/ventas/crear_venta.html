@@ -1,0 +1,75 @@
+{% extends 'Base/base_home.html' %}
+
+{% block content %}
+<div class="container mt-5 text">
+    <h1>Crear Venta</h1>
+    <form id="crear-venta-form" method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+    
+        <table id="productos-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Subtotal</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <select name="productos[][producto_id]" class="form-control">
+                            {% for producto in productos %}
+                            <option value="{{ producto.id_producto }}">{{ producto.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td><input type="number" name="productos[][cantidad]" class="form-control cantidad"></td>
+                    <td><input type="text" class="form-control subtotal" readonly></td>
+                    <td><button type="button" class="btn btn-danger remove-row">Eliminar</button></td>
+                </tr>
+            </tbody>
+        </table>
+    
+        <button type="button" id="add-row" class="btn btn-primary">Añadir producto</button>
+        <button type="submit" class="btn btn-success">Guardar Venta</button>
+    </form>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+    const productosTable = document.querySelector('#productos-table tbody');
+    const addRowButton = document.querySelector('#add-row');
+
+    // Añadir nueva fila
+    addRowButton.addEventListener('click', () => {
+        const newRow = productosTable.querySelector('tr').cloneNode(true);
+        newRow.querySelectorAll('input, select').forEach(input => {
+            input.value = '';  // Limpiar valores de la fila nueva
+        });
+        productosTable.appendChild(newRow);
+    });
+
+    // Eliminar fila
+    productosTable.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-row')) {
+            e.target.closest('tr').remove();
+        }
+    });
+
+    // Calcular subtotal al cambiar cantidad
+    productosTable.addEventListener('input', (e) => {
+        if (e.target.classList.contains('cantidad')) {
+            const row = e.target.closest('tr');
+            const cantidad = parseInt(e.target.value) || 0;
+            const productoSelect = row.querySelector('select');
+            const productoPrecio = parseFloat(productoSelect.selectedOptions[0].dataset.precio || 0);
+            const subtotalField = row.querySelector('.subtotal');
+
+            subtotalField.value = (cantidad * productoPrecio).toFixed(2);
+        }
+    });
+});
+
+</script>
+{% endblock %}

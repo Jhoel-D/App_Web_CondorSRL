@@ -126,7 +126,7 @@ from django.contrib import admin
 class VentasForm(forms.ModelForm):
     class Meta:
         model = Ventas
-        fields = ['id_cliente', 'costo_total']
+        fields = ['id_cliente', 'costo_total', 'estado']
         widgets = {
             'costo_total': forms.TextInput(attrs={'readonly': 'readonly'}),
         }
