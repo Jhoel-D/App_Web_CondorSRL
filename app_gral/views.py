@@ -578,3 +578,14 @@ def dar_de_baja_venta(request, venta_id):
     venta.save()
     messages.success(request, f'Venta {estado} exitosamente.')
     return redirect('mod_ventas_home')
+
+@login_required
+#  ventas = Ventas.objects.filter(is_active=True)
+def imprimir_venta(request, venta_id):
+    ventas = get_object_or_404(Ventas, id_venta=venta_id)
+    productos = ProductosVenta.objects.filter(venta=ventas) # Obtener los productos de la venta
+
+    return render(request, 'ventas/imprimir_venta.html', {
+        'ventas': ventas,
+        'productos': productos,
+    })

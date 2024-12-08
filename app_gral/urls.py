@@ -51,6 +51,7 @@ urlpatterns = [
     path('venta/<int:venta_id>/detalle/', views.ver_detalle_venta, name='ver_detalle_venta'),
     path('ventas/editar/<int:venta_id>/', views.editar_venta, name='editar_venta'),
     path('ventas/eliminar/<int:venta_id>/', views.dar_de_baja_venta, name='eliminar_venta'),
+    path('ventas/imprimir/<int:venta_id>/', views.imprimir_venta, name='imprimir_venta'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

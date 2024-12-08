@@ -1,0 +1,166 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Venta</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            width: 100%; /* Asegura que ocupe todo el ancho de la página al imprimir */
+        }
+        .container {
+            width: 100%; /* Ancho completo para impresión */
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            margin-bottom: 20px;
+            justify-content: space-between; /* Ajustar espacio entre el logo y la info de contacto */
+        }
+        .header img {
+            max-width: 100px;
+        }
+        .company-info {
+            text-align: right;
+        }
+        .company-info p {
+            margin: 0;
+        }
+        .details {
+            clear: both;
+            margin-top: 30px;
+        }
+        .details h2 {
+            margin-bottom: 15px;
+        }
+        .details .row {
+            margin-bottom: 10px;
+        }
+        .details table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        .details table, .details th, .details td {
+            border: 1px solid #ddd;
+        }
+        .details th, .details td {
+            padding: 10px;
+            text-align: left;
+        }
+        .details th {
+            background-color: #f2f2f2;
+        }
+        .details h4.text-end {
+            margin-top: 20px;
+            text-align: right;
+        }
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+            }
+            .header {
+                display: block; /* Cambiar a bloque para que el logo y la info de contacto no se dispongan uno encima del otro */
+                width: 100%;
+            }
+            .header img, .company-info {
+                text-align: left;
+                display: inline-block;
+            }
+            .company-info {
+                margin-top: 10px;
+            }
+            .details .row {
+                page-break-inside: avoid;
+            }
+            .details table {
+                width: 100%;
+                margin-top: 0;
+            }
+            .footer {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="col-md-8">
+                <img src="{% static '/logo.jpg' %}" alt="Logo de la empresa">
+            </div>
+            <div class="col-md-4 company-info">
+                <!-- parrafos pequeños -->
+                <p><strong><i class="fas fa-map-marker-alt"></i> La Paz-El Alto, Bolivia</strong></p>
+                <p><strong><i class="fab fa-whatsapp"></i> 70121195</strong></p>
+                <p><strong><i class="fas fa-phone"></i> 2850997 - 2801199</strong></p>
+                <p><strong><i class="fas fa-envelope"></i> distribuidor@calaminascondor.com</strong></p>
+            </div>
+        </div>
+
+        <div class="container details">
+            <div class="row">
+                <div class="text-center">
+                    <h2>Detalle de Venta</h2>
+                </div>
+                <div class="col">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <td><strong>Nro de venta Id:</strong> {{ ventas.id_venta }}</td>
+                                <td><strong>Fecha de registro:</strong> {{ ventas.fecha_registro|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cliente:</strong> {{ ventas.id_cliente.first_name }}</td>
+                                <td><strong>CI/NIT:</strong> {{ ventas.id_cliente.CI }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Producto</th>
+                                <th>Descripción</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unitario</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for producto in productos %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ producto.producto.nombre }}</td>
+                                <td>{{ producto.producto.descripcion }}</td>
+                                <td>{{ producto.cantidad }}</td>
+                                <td>{{ producto.producto.precio_unitario }} Bs</td>
+                                <td>{{ producto.subtotal }} Bs</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <h4 class="text-end">Total: {{ ventas.costo_total }} Bs</h4>
+                </div>
+            </div>
+
+            <hr>
+
+        </div>
+    </div>
+
+    <div class="footer no-print">
+        <button class="no btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> Imprimir</button>
+        <a href="{% url 'mod_ventas_home' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Regresar</a>
+    </div>
+</body>
+</html>
