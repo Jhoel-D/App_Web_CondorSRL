@@ -320,7 +320,7 @@ def restablecer_contrasena(request):
 #MOD PRODUCTOS
 def mod_productos_home(request):
     search_term = request.GET.get('search', '')
-    productos = ProductoInventario.objects.filter(nombre__icontains=search_term)
+    productos = ProductoInventario.objects.filter(nombre__icontains=search_term, is_active=True)
     
     # Paginación
     paginator = Paginator(productos, 10)  # Muestra 10 productos por página
@@ -355,10 +355,25 @@ def editar_producto(request, producto_id):
 
     return render(request, 'productos/editar_producto.html', {'form': form, 'producto': producto})
 
+# def eliminar_producto(request, producto_id):
+#     producto = get_object_or_404(ProductoInventario, id_producto=producto_id)
+#     producto.delete()
+#     messages.success(request, 'Producto eliminado exitosamente.')
+#     return redirect('mod_productos_home')
+
 def eliminar_producto(request, producto_id):
     producto = get_object_or_404(ProductoInventario, id_producto=producto_id)
-    producto.delete()
-    messages.success(request, 'Producto eliminado exitosamente.')
+    # Cambiar el estado
+    if producto.is_active:
+        producto.is_active = False  # Desactivar el usuario (Dado de baja)
+        estado = "Dado de baja"
+    else:
+        producto.is_active = True   # Activar el usuario
+        estado = "Activo"
+    producto.save()  # Guardar los cambios en el estado
+    # Mostrar un mensaje de éxito
+    messages.success(request, f'Producto {estado} exitosamente.')
+    # Redirigir a la vista de la lista de usuarios
     return redirect('mod_productos_home')
 
 def crear_producto(request):
@@ -416,7 +431,6 @@ def editar_categoria(request, categoria_id):
 
 def eliminar_categoria(request, categoria_id):
     categoria = get_object_or_404(Categoria, id_categoria=categoria_id)
-
     # Cambiar el estado del usuario
     if categoria.is_active:
         categoria.is_active = False  # Desactivar el usuario (Dado de baja)
@@ -424,12 +438,9 @@ def eliminar_categoria(request, categoria_id):
     else:
         categoria.is_active = True   # Activar el usuario
         estado = "Activo"
-
     categoria.save()  # Guardar los cambios en el estado
-
     # Mostrar un mensaje de éxito
     messages.success(request, f'Categoría {estado} exitosamente.')
-
     # Redirigir a la vista de la lista de usuarios
     return redirect('mod_categorias_home')
 
@@ -618,12 +629,12 @@ def add_sale(request):
         venta_form = VentasForm()
 
     return render(request, 'ventas/add_sale.html', {'venta_form': venta_form})
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+
+
 from django.http import JsonResponse
 from django.db import transaction
-from .models import Ventas, ProductosVenta, ProductoInventario
-from .forms import VentasForm
+
+
 
 @login_required
 @transaction.atomic
@@ -631,30 +642,61 @@ def crear_venta(request):
     if request.method == 'POST':
         venta_form = VentasForm(request.POST)
         if venta_form.is_valid():
-            # Crear la venta, asignando el vendedor al usuario logueado
+            # Crear la venta
             venta = venta_form.save(commit=False)
-            venta.id_vendedor = request.user  # Asigna el usuario logueado como vendedor
+            venta.id_vendedor = request.user
+            venta.total = 0
             venta.save()
 
-            # Procesar los productos relacionados
-            productos_data = request.POST.getlist('productos[]')
+            productos_data = []
+            for key, value in request.POST.items():
+                if 'productos-' in key and '-producto_id' in key:
+                    index = key.split('-')[1]  # Asegúrate de que el índice es único
+                    producto_id = request.POST.get(f'productos-{index}-producto_id', '').strip()
+                    cantidad = request.POST.get(f'productos-{index}-cantidad', '').strip()
+                    # Validar que producto_id y cantidad no estén vacíos y sean números
+                    if not producto_id.isdigit() or not cantidad.isdigit():
+                        continue  # Ignorar filas con datos inválidos
+
+                    productos_data.append({
+                        'producto_id': int(producto_id),
+                        'cantidad': int(cantidad),
+                    })
+
+            # Procesar productos y calcular el total
+            total_venta = 0
             for producto_data in productos_data:
-                producto_id = producto_data.get('producto_id')
-                cantidad = int(producto_data.get('cantidad'))
+                producto_id = producto_data['producto_id']
+                cantidad = producto_data['cantidad']
+
                 try:
-                    producto = ProductoInventario.objects.get(pk=producto_id)
+                    producto = ProductoInventario.objects.get(id_producto=producto_id)
+                    subtotal = producto.precio_unitario * cantidad
+                    total_venta += subtotal
+
+                    # Crear el registro de ProductosVenta
                     ProductosVenta.objects.create(
                         venta=venta,
                         producto=producto,
                         cantidad=cantidad,
+                        subtotal=subtotal,
                     )
+
+                    # Actualizar el stock del producto
+                    # producto.cantidad_stock -= cantidad
+                    producto.save()
                 except ProductoInventario.DoesNotExist:
                     return JsonResponse({'error': f"Producto con ID {producto_id} no existe"}, status=400)
 
+            # Actualizar el total de la venta
+            venta.total = total_venta
+            venta.save()
+
             return redirect('mod_ventas_home')
-            # return JsonResponse({'success': True, 'redirect_url': '/ventas/'})
         else:
             return JsonResponse({'success': False, 'errors': venta_form.errors}, status=400)
     else:
+        productos = ProductoInventario.objects.all()
         venta_form = VentasForm()
-        return render(request, 'ventas/crear_venta.html', {'form': venta_form})
+        return render(request, 'ventas/crear_venta.html', {'form': venta_form, 'productos': productos})
+

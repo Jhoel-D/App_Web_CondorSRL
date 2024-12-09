@@ -21,6 +21,7 @@
         <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>
+                    <th>#</th>
                     <th>ID</th>
                     <th>Nombre</th>
                     <th>Categoría</th>
@@ -33,6 +34,7 @@
             <tbody>
                 {% for producto in productos %}
                 <tr>
+                    <td>{{ forloop.counter }}</td>
                     <td>{{ producto.id_producto }}</td>
                     <td>{{ producto.nombre }}</td>
                     <td>{{ producto.id_categoria.nombre }}</td>

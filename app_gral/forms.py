@@ -89,6 +89,8 @@ class ProductoInventarioCreateForm(forms.ModelForm):
         }
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Filtrar categorías activas
+        self.fields['id_categoria'].queryset = Categoria.objects.filter(is_active=True)
         # Establecer valores predeterminados como vacíos si es necesario
         if not self.instance.pk:
             self.fields['id_categoria'].empty_label = "Seleccione una categoría"  # Asegura que no haya valor seleccionado por defecto
@@ -130,6 +132,20 @@ class VentasForm(forms.ModelForm):
         widgets = {
             'costo_total': forms.TextInput(attrs={'readonly': 'readonly'}),
         }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Obtener el grupo 'Cliente'
+        try:
+            grupo_cliente = Group.objects.get(name='Cliente')
+        except Group.DoesNotExist:
+            grupo_cliente = None
+
+        # Filtrar clientes activos y que pertenezcan al grupo 'Cliente'
+        if grupo_cliente:
+            self.fields['id_cliente'].queryset = grupo_cliente.user_set.filter(is_active=True)
+        else:
+            # Si el grupo no existe, no mostrar ningún cliente
+            self.fields['id_cliente'].queryset = User.objects.none()
 
 class ProductosVentaForm(forms.ModelForm):
     class Meta:
