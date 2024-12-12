@@ -9,8 +9,8 @@
 
             <h3 class="fw-bold">{{ producto.nombre }}</h3>
             <p><strong>Categoría:</strong> {{ producto.id_categoria.nombre }}</p>
-            <p><strong>Precio:</strong> {{ producto.precio_unitario|floatformat:2 }}</p>
-            <p><strong>Stock:</strong> {{ producto.cantidad_stock }}</p>
+            <p><strong>Precio:</strong> {{ producto.precio_unitario|floatformat:2 }} Bs</p>
+            <p><strong>Stock:</strong> {{ producto.cantidad_stock }} unidades</p>
             <p><strong>Descripción:</strong> {{ producto.descripcion }}</p>
             <p><strong>Características:</strong> {{ producto.caracteristicas }}</p>
         </div>

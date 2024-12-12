@@ -7,7 +7,6 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('', views.menu_principal, name='menu_principal'),  
     path('iniciar_sesion/', views.iniciar_sesion, name='iniciar_sesion'), 
-    path('menu_inicio/', views.menu_inicio, name='menu_inicio'), 
     #Cerrar Sesión
     path('cerrar_sesion/',views.cerrar_sesion, name= 'cerrar_sesion'),
     #MOD USUARIOS
@@ -52,8 +51,16 @@ urlpatterns = [
     path('ventas/editar/<int:venta_id>/', views.editar_venta, name='editar_venta'),
     path('ventas/eliminar/<int:venta_id>/', views.dar_de_baja_venta, name='eliminar_venta'),
     path('ventas/imprimir/<int:venta_id>/', views.imprimir_venta, name='imprimir_venta'),
-    path('ventas/crear/', views.add_sale, name='agregar_venta'),
     path('ventas/crear_venta/', views.crear_venta, name='crear_venta'),
+    
+    #MOD PEDIDOS
+    path('pedidos/', views.mod_pedidos_home, name='mod_pedidos_home'),
+    path('pedidos/<int:pedido_id>/productos/', views.ver_productos_pedido, name='ver_productos_pedido'),
+    path('pedidos/<int:pedido_id>/detalle/', views.ver_detalle_pedido, name='ver_detalle_pedido'),
+    path('pedidos/eliminar/<int:pedido_id>/', views.dar_de_baja_pedido, name='eliminar_pedido'),
+    path('pedidos/imprimir/<int:pedido_id>/', views.imprimir_pedido, name='imprimir_pedido'),
+    path('pedidos/editar/<int:venta_id>/', views.editar_venta, name='editar_venta'),
+    path('pedidos/crear_pedido/', views.crear_pedido, name='crear_pedido'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

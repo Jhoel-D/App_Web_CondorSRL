@@ -1,0 +1,86 @@
+{% extends 'base/base_home.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-5 text">
+    <!-- Título principal -->
+    <div class="text-center">
+        <h1 class="fw-bold mb-4">
+            <i class="fas fa-shopping-cart"></i> Detalles del Pedido
+        </h1>
+    </div>
+    
+    <!-- Detalles del pedido -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white text-center">
+            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información del Pedido</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>ID del Pedido:</strong> {{ pedido.id_pedido }}</p>
+                    <p><strong>Cliente:</strong> {{ pedido.id_cliente.first_name }} {{ pedido.id_cliente.last_name }}</p>
+                    <p><strong>Fecha del Pedido:</strong> {{ pedido.fecha_registro }}</p>
+                    <p><strong>Estado:</strong> {{ pedido.estado }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Total del Pedido:</strong> {{ pedido.costo_total }} Bs</p>
+                    <p><strong>Pagado:</strong> {{ pedido.monto_pagado }} Bs</p>
+                    <p><strong>Monto Faltante:</strong> {{ monto_faltante }} Bs</p>
+                    <p><strong>Beneficiario:</strong> {{ pedido.beneficiario }}</p>
+                    <p><strong>Celular de Referencia:</strong> {{ pedido.celular_a_comunicar }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalles de los productos -->
+    <div class="text-center">
+        <h2 class="fw-bold mb-4"><i class="fas fa-box"></i> Detalles de los Productos</h2>
+    </div>
+    <div class="table-responsive mb-4">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Id</th>
+                    <th>Producto</th>
+                    <th>Imagen</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ producto.id }}</td>
+                    <td>{{ producto.producto.nombre }}</td>
+                    <td class="text-center">
+                        {% if producto.producto.imagen_producto %}
+                            <img src="{{ producto.producto.imagen_producto.url }}" alt="{{ producto.producto.nombre }}" width="60" class="rounded">
+                        {% else %}
+                            <span class="text-muted">No disponible</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">{{ producto.cantidad }}</td>
+                    <td>{{ producto.producto.precio_unitario }} Bs</td>
+                    <td>{{ producto.subtotal }} Bs</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No se encontraron productos en este pedido.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Botón para regresar -->
+    <div class="text-center">
+        <a href="{% url 'mod_pedidos_home' %}" class="btn btn-dark">
+            <i class="fas fa-arrow-left"></i> Regresar
+        </a>
+    </div>
+</div>
+{% endblock %}

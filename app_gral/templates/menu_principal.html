@@ -14,7 +14,7 @@
           {% endif %}
         </div>
         <div class="col-12 col-md-4">
-          <img src="{% static 'logo.jpg' %}" alt="Logo" class="img-fluid rounded shadow" style="max-width: 250px;">
+          <img src="{% static 'logo_navidad.jpg' %}" alt="Logo" class="img-fluid rounded shadow" style="max-width: 250px;">
         </div>
       </div>
     </div>
@@ -50,7 +50,7 @@
               <i class="bx bx-category icon mb-3" style="font-size: 40px;"></i>
               <h5 class="card-title">CATEGORÍAS</h5>
               <p class="card-text">Gestión de categorías de productos</p>
-              <a href="#" class="btn btn-primary">Ver Más</a>
+              <a href="{% url 'mod_categorias_home' %}" class="btn btn-primary">Ver Más</a>
             </div>
           </div>
         </div>
@@ -84,7 +84,7 @@
             <i class="bx bx-book-reader icon mb-3" style="font-size: 40px;"></i>
             <h5 class="card-title">VENTAS</h5>
             <p class="card-text">Gestión de ventas realizadas</p>
-            <a href="#" class="btn btn-primary">Ver Más</a>
+            <a href="{% url 'mod_ventas_home' %}" class="btn btn-primary">Ver Más</a>
           </div>
         </div>
       </div>
@@ -95,7 +95,7 @@
             <i class="bx bx-envelope-open icon mb-3" style="font-size: 40px;"></i>
             <h5 class="card-title">PEDIDOS</h5>
             <p class="card-text">Gestión de pedidos</p>
-            <a href="#" class="btn btn-primary">Ver Más</a>
+            <a href="{% url 'mod_pedidos_home' %}" class="btn btn-primary">Ver Más</a>
           </div>
         </div>
       </div>

@@ -1,0 +1,147 @@
+{% extends 'Base/base_home.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container mt-5 text">
+    <h1 class="mb-4">Crear Pedido</h1>
+    <form id="crear-venta-form" method="POST" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_cliente" class="form-label">Cliente</label>
+            {{ form.id_cliente|as_crispy_field }}
+        </div>
+        <div class="mb-3">
+            <label for="beneficiario" class="form-label">Beneficiario</label>
+            {{ form.beneficiario|as_crispy_field }}
+        </div>
+        <div class="mb-3">
+            <label for="celular_a_comunicar" class="form-label">Cliente</label>
+            {{ form.celular_a_comunicar|as_crispy_field }}
+        </div>
+        <div class="mb-3">
+            <label for="id_cliente" class="form-label">Cliente</label>
+            {{ form.monto_pagado|as_crispy_field }}
+        </div>
+        <div class="mb-3">
+            <label for="estado" class="form-label">Estado</label>
+            {{ form.estado|as_crispy_field }}
+        </div>
+
+
+        <h3 class="mt-4">Productos</h3>
+        <table class="table table-bordered" id="productos-table">
+            <thead class="table-light">
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Subtotal</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <select name="productos-0-producto_id" class="form-select">
+                            {% for producto in productos %}
+                            <option value="{{ producto.id_producto }}" data-precio="{{ producto.precio_unitario }}">{{ producto.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" name="productos-0-cantidad" class="form-control cantidad" value="1" min="1">
+                    </td>
+                    <td>
+                        <input type="text" class="form-control subtotal" value="0.00" readonly>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger remove-row">Eliminar</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button type="button" id="add-row" class="btn btn-primary">Añadir producto</button>
+        <button type="submit" class="btn btn-success">Guardar Venta</button>
+    </form>
+</div>
+
+<!-- SweetAlert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const productosTable = document.querySelector('#productos-table tbody');
+        const addRowButton = document.querySelector('#add-row');
+        const form = document.querySelector('#crear-venta-form');
+
+        // Añadir nueva fila de productos
+        addRowButton.addEventListener('click', () => {
+            const newRow = productosTable.querySelector('tr').cloneNode(true);
+            const rowCount = productosTable.querySelectorAll('tr').length;
+            newRow.querySelectorAll('input, select').forEach(input => {
+                const name = input.getAttribute('name');
+                if (name) {
+                    input.setAttribute('name', name.replace(/\d+/, rowCount));
+                }
+                input.value = '';
+            });
+            productosTable.appendChild(newRow);
+        });
+
+        // Eliminar fila de productos
+        productosTable.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-row')) {
+                e.target.closest('tr').remove();
+                calcularCostoTotal();
+            }
+        });
+
+        // Calcular subtotal y costo total
+        productosTable.addEventListener('input', (e) => {
+            if (e.target.classList.contains('cantidad')) {
+                const row = e.target.closest('tr');
+                const cantidad = parseInt(e.target.value) || 0;
+                const productoPrecio = parseFloat(row.querySelector('select').selectedOptions[0].dataset.precio || 0);
+                row.querySelector('.subtotal').value = (cantidad * productoPrecio).toFixed(2);
+                calcularCostoTotal();
+            }
+        });
+
+        const calcularCostoTotal = () => {
+            let total = 0;
+            productosTable.querySelectorAll('.subtotal').forEach(subtotal => {
+                total += parseFloat(subtotal.value) || 0;
+            });
+            document.querySelector('#id_costo_total').value = total.toFixed(2);
+        };
+
+        // Validar formulario con alertas
+        form.addEventListener('submit', (e) => {
+            let valid = true;
+            productosTable.querySelectorAll('tr').forEach(row => {
+                const producto = row.querySelector('select').value;
+                const cantidad = parseInt(row.querySelector('.cantidad').value) || 0;
+
+                if (!producto || cantidad <= 0) {
+                    valid = false;
+                }
+            });
+
+            if (!valid) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Formulario Incompleto',
+                    text: 'Por favor, asegúrate de completar todos los campos correctamente.',
+                });
+                return;
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Venta Guardada',
+                text: 'La venta se ha registrado correctamente.',
+            });
+        });
+    });
+</script>
+{% endblock %}

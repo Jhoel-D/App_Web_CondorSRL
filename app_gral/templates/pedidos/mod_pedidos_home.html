@@ -3,12 +3,12 @@
 {% block content %}
 <div class="container mt-5">
     <div class="text">
-        <h1 class="text-center fw-bold mb-4">Panel de Ventas</h1>
+        <h1 class="text-center fw-bold mb-4">Panel de Pedidos</h1>
     </div>
 
     <!-- Barra de búsqueda -->
     <div class="input-group mb-3">
-        <form method="GET" action="{% url 'mod_ventas_home' %}">
+        <form method="GET" action="{% url 'mod_pedidos_home' %}">
             <input type="text" class="form-control" name="search" placeholder="Buscar por CI o nombres" value="{{ search_term }}">
         </form>
         <button type="submit" class="btn btn-dark">
@@ -16,7 +16,7 @@
         </button>
     </div>
 
-    <!-- Tabla de ventass -->
+    <!-- Tabla de pedidoss -->
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead class="table-dark">
@@ -25,51 +25,50 @@
                     <th>ID</th>
                     <th>Cliente</th>
                     <th>Producto</th>
-                    <th>Costo Total</th>
+                    <th>Monto Pagado</th>
+                    <th>Monto Total</th>
                     <th>Fecha de registro</th>
+                    <th>Beneficiario</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                {% for ventas in ventas %}
+                {% for pedidos in pedidos %}
                 <tr>
                     <td>{{ forloop.counter }}</td>
-                    <td>{{ ventas.id_venta }}</td>
-                    <td>{{ ventas.id_cliente.first_name }} {{ ventas.id_cliente.last_name }}</td>
+                    <td>{{ pedidos.id_pedido }}</td>
+                    <td>{{ pedidos.id_cliente.first_name }} {{ pedidos.id_cliente.last_name }}</td>
                     <td>
-                        <a href="{% url 'ver_productos_venta' ventas.id_venta %}" class="btn btn-success">
+                        <a href="{% url 'ver_productos_pedido' pedidos.id_pedido %}" class="btn btn-success">
                             <i class="bx bx-store icon"></i> Ver Productos
                         </a>
                     </td>
-                    
-                    <td>{{ ventas.costo_total }} Bs</td>
-                    <td>{{ ventas.fecha_registro|date:"d-m-Y H:i" }}</td>
-                    
+                    <td>{{ pedidos.monto_pagado }} Bs</td>
+                    <td>{{ pedidos.costo_total }} Bs</td>
+                    <td>{{ pedidos.fecha_registro|date:"d-m-Y H:i" }}</td>
+                    <td>{{ pedidos.beneficiario }}</td>
 
                     <td>
                         <div class=" justify-content-center">
-                            <a href="{% url 'ver_detalle_venta' ventas.id_venta %}" class="btn btn-info btn-sm me-2" title="Ver"> 
+                            <a href="{% url 'ver_detalle_pedido' pedidos.id_pedido %}" class="btn btn-info btn-sm me-2" title="Ver"> 
                                 <i class="fas fa-eye"></i>
                                 Ver
                             </a>
-                            <a href="javascript:void(0);" class="btn btn-danger btn-sm" title="Eliminar" onclick="deleteUsuario({{ ventas.id_venta }});">
+                            <a href="javascript:void(0);" class="btn btn-danger btn-sm" title="Eliminar" onclick="deleteUsuario({{ pedidos.id_pedido }});">
                                 <i class="fas fa-trash-alt"></i>
                                 Eliminar
                              </a>
-                            <!-- <a href="{% url 'editar_venta' ventas.id_venta %}" class="btn btn-warning btn-sm me-2" title="Editar"> 
-                                <i class="fas fa-edit"></i>
-                            </a> -->
-                             <!-- <a href="javascript:void(0);" class="btn btn-success btn-sm me-2" title="Imprimir" onclick="abrirImpresion({{ ventas.id_venta }});">
+                             <!-- <a href="javascript:void(0);" class="btn btn-success btn-sm me-2" title="Imprimir" onclick="abrirImpresion({{ pedidos.id_pedido }});">
                                   <i class="fas fa-print"></i> Imprimir
                              </a> -->
-                             <a href="{% url 'imprimir_venta' ventas.id_venta %}" class="btn btn-success btn-sm me-2" title="Imprimir" target="_blank"> 
+                             <a href="{% url 'imprimir_pedido' pedidos.id_pedido %}" class="btn btn-success btn-sm me-2" title="Imprimir" target="_blank"> 
                                 <i class="fas fa-print"></i>
                                 Imprimir
                             </a>
                           
                           <script>
-                              function abrirImpresion(ventaId) {
-                                  const url = "{% url 'imprimir_venta' 0 %}".replace("0", ventaId);
+                              function abrirImpresion(pedidoId) {
+                                  const url = "{% url 'imprimir_venta' 0 %}".replace("0", pedidoId);
                                   const ventana = window.open(url, '_blank');
                                   ventana.print();
                               }
@@ -80,32 +79,32 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="10" class="text-center">No se encontraron ventass.</td>
+                    <td colspan="10" class="text-center">No se encontraron pedidoss.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    <!-- Botón para agregar nuevo ventas -->
+    <!-- Botón para agregar nuevo pedidos -->
     <div class="text-end mt-3">
-        <a href="{% url 'crear_venta' %}" class="btn btn-success"> 
-            <i class="fas fa-user-plus"></i> Agregar ventas
+        <a href="{% url 'crear_pedido' %}" class="btn btn-success"> 
+            <i class="fas fa-user-plus"></i> Agregar pedidos
         </a>
     </div>
      <!-- Paginación -->
      <nav aria-label="Pagination">
         <ul class="pagination justify-content-center">
-            {% if ventas.has_previous %}
+            {% if pedidos.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ ventas.previous_page_number }}&search={{ search_term }}">Anterior</a>
+                <a class="page-link" href="?page={{ pedidos.previous_page_number }}&search={{ search_term }}">Anterior</a>
             </li>
             {% endif %}
             <li class="page-item active">
-                <span class="page-link">{{ ventas.number }}</span>
+                <span class="page-link">{{ pedidos.number }}</span>
             </li>
-            {% if ventas.has_next %}
+            {% if pedidos.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ ventas.next_page_number }}&search={{ search_term }}">Siguiente</a>
+                <a class="page-link" href="?page={{ pedidos.next_page_number }}&search={{ search_term }}">Siguiente</a>
             </li>
             {% endif %}
         </ul>
@@ -113,10 +112,10 @@
 </div>
 
 <script>
-    function deleteUsuario(ventaId) {
+    function deleteUsuario(pedidoId) {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: "¡Esta venta será eliminada y dada de baja!",
+            text: "¡Este pedido será eliminado y dado de baja!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -126,7 +125,7 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 // Redirigir a la URL de eliminación (con el ID del producto)
-                window.location.href = "{% url 'eliminar_venta' 0 %}".replace("0", ventaId);
+                window.location.href = "{% url 'eliminar_pedido' 0 %}".replace("0", pedidoId);
                 
             }
         });

@@ -215,7 +215,7 @@ class ProductosPedido(models.Model):
 
         # Verificar que el stock no sea negativo
         if self.producto.cantidad_stock < 0:
-            raise ValidationError(f"Stock insuficiente para el producto {self.producto.nombre}.")
+            raise ValidationError(f"Stock insuficiente para el producto {self.producto.nombre}. El stock actual es {self.producto.cantidad_stock}.")
 
         # Guardar el producto actualizado y luego la instancia
         self.producto.save()
@@ -223,9 +223,14 @@ class ProductosPedido(models.Model):
         self.subtotal = self.cantidad * self.producto.precio_unitario
         super().save(*args, **kwargs)
 
-    def delete(self, *args, **kwargs):
-        # Devolver el stock del producto al eliminar un registro
-        self.producto.cantidad_stock += self.cantidad
+@transaction.atomic
+def delete(self, *args, **kwargs):
+    # Devolver el stock del producto al eliminar un registro
+    self.producto.cantidad_stock += self.cantidad
+    self.producto.save()
+    super().delete(*args, **kwargs)
+def __str__(self):
+        return f"{self.cantidad} x {self.producto.nombre} en pedido {self.pedido.id_pedido}"
 class Pedidos(models.Model):
     ESTADO_CHOICES = [
         ('PENDIENTE', 'Pendiente'),
@@ -239,28 +244,34 @@ class Pedidos(models.Model):
     beneficiario = models.CharField(max_length=100)
     monto_pagado = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     celular_a_comunicar = models.CharField(max_length=15)
-    lugar_entrega = models.CharField(max_length=100)
     costo_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, editable=False)
     estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='PENDIENTE')
+    is_active = models.BooleanField(default=True)
     
     def calcular_costo_total(self):
         # Calcular el costo total sumando los subtotales de los productos
         return sum(item.subtotal for item in self.detalle_productos_pedidos.all())
     
+    # @transaction.atomic
+    # def save(self, *args, **kwargs):
+    #     # Guardar la instancia para asignarle un ID si no lo tiene
+    #     if not self.pk:
+    #         super().save(*args, **kwargs)  # Guardado inicial
+
+    #     # Calcular el costo total y actualizar el campo
+    #     self.costo_total = self.calcular_costo_total()
+    #     super().save(update_fields=['costo_total'])  # Guardar el costo total actualizado
+
+    # def __str__(self):
+    #     return f"Pedido {self.id_pedido} - Cliente: {self.id_cliente.username}"
     @transaction.atomic
     def save(self, *args, **kwargs):
-        # Guardar la instancia para asignarle un ID si no lo tiene
-        if not self.pk:
-            super().save(*args, **kwargs)  # Guardado inicial
-
-        # Calcular el costo total y actualizar el campo
-        self.costo_total = self.calcular_costo_total()
-        super().save(update_fields=['costo_total'])  # Guardar el costo total actualizado
-
+        if self.pk:  # Si el pedido ya existe, recalcula el costo total solo si los productos cambian
+            self.costo_total = self.calcular_costo_total()
+        super().save(*args, **kwargs)
+    
     def __str__(self):
         return f"Pedido {self.id_pedido} - Cliente: {self.id_cliente.username}"
-
-
 #PARA VENTAS
 @transaction.atomic
 @receiver(post_save, sender=ProductosVenta)

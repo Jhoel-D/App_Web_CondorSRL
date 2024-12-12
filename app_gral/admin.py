@@ -77,7 +77,7 @@ class ProductosPedidoInline(admin.TabularInline):
 
 @admin.register(Pedidos)
 class PedidosAdmin(admin.ModelAdmin):
-    list_display = ('id_pedido', 'id_cliente', 'id_vendedor', 'estado', 'fecha_registro','beneficiario','monto_pagado', 'celular_a_comunicar', 'lugar_entrega','costo_total',)
+    list_display = ('id_pedido', 'id_cliente', 'id_vendedor', 'estado', 'fecha_registro','beneficiario','monto_pagado', 'celular_a_comunicar','costo_total',)
     readonly_fields = ('costo_total',)
     search_fields = ('id_cliente__username', 'id_vendedor__username')
     list_filter = ('estado', 'fecha_registro')

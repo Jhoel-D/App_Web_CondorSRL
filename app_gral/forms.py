@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User, Group
 
-from .models import Usuario, ProductoInventario, Categoria, Usuario, Ventas, ProductosVenta
+from .models import Usuario, ProductoInventario, Categoria, Usuario, Ventas, ProductosVenta, Pedidos, ProductosPedido
 
 class UsuarioUpdateForm(forms.ModelForm):
     class Meta:
@@ -166,6 +166,51 @@ class ProductosVentaForm(forms.ModelForm):
 ItemsOrderFormSet = modelformset_factory(
     ProductosVenta,
     form=ProductosVentaForm,
+    extra=0,
+    can_delete=True
+)
+
+class PedidosForm(forms.ModelForm):
+    class Meta:
+        model = Pedidos
+        fields = ['id_cliente', 'beneficiario', 'celular_a_comunicar','estado', 'monto_pagado']
+        widgets = {
+            'costo_total': forms.TextInput(attrs={'readonly': 'readonly'}),
+        }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Obtener el grupo 'Cliente'
+        try:
+            grupo_cliente = Group.objects.get(name='Cliente')
+        except Group.DoesNotExist:
+            grupo_cliente = None
+
+        # Filtrar clientes activos y que pertenezcan al grupo 'Cliente'
+        if grupo_cliente:
+            self.fields['id_cliente'].queryset = grupo_cliente.user_set.filter(is_active=True)
+        else:
+            # Si el grupo no existe, no mostrar ningún cliente
+            self.fields['id_cliente'].queryset = User.objects.none()
+        
+class ProductosPedidoForm(forms.ModelForm):
+    class Meta:
+        model = ProductosPedido
+        fields = ['producto', 'cantidad']
+        widgets = {
+            'producto': forms.Select(attrs={'class': 'form-control'}),
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+    
+    def clean_producto(self):
+        producto = self.cleaned_data.get('producto')
+        if not producto:
+            raise forms.ValidationError("El campo producto no puede estar vacío.")
+        return producto
+
+
+ItemsOrderFormSet = modelformset_factory(
+    ProductosPedido,
+    form=ProductosPedidoForm,
     extra=0,
     can_delete=True
 )

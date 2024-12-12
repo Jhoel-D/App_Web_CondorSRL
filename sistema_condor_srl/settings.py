@@ -29,12 +29,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app_gral',
-    'app_web_linea'
+    'app_web_linea',
 ]
 
 INSTALLED_APPS += [
     'crispy_forms',
     'crispy_bootstrap5',  # Para usar plantillas de Bootstrap 5
+    'django_select2',
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"

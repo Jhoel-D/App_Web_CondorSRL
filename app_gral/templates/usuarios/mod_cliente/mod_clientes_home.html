@@ -51,7 +51,7 @@
                             Sin rol
                         {% endif %}
                     </td> -->
-                    <td>{{ cliente.fecha_de_registro|date:"d-m-Y H:i" }}</td>
+                    <td><p>{{ cliente.fecha_de_registro }}</p></td>
                     <td>
                         <div class="d-flex justify-content-center">
                             <a href="{% url 'ver_cliente' cliente.id %}" class="btn btn-info btn-sm me-2">

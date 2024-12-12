@@ -5,7 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm #Añadido
 from django.contrib.auth.decorators import login_required
 
 from django.contrib.auth.models import Group
-from .models import Usuario, ProductoInventario, Categoria, Ventas, ProductosVenta
+from .models import Usuario, ProductoInventario, Categoria, Ventas, ProductosVenta, Pedidos, ProductosPedido
 from django.db.models import Q #para or en python
 from django.core.paginator import Paginator
 
@@ -13,7 +13,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
-from .forms import UsuarioUpdateForm, ProductoInventarioForm, ProductoInventarioCreateForm, UsuarioForm, UsuarioCreateForm, CategoriaForm, CategoriaCreateForm, ProductosVentaForm, VentasForm
+from .forms import UsuarioUpdateForm, ProductoInventarioForm, ProductoInventarioCreateForm, UsuarioForm, UsuarioCreateForm, CategoriaForm, CategoriaCreateForm, ProductosVentaForm, VentasForm, PedidosForm
 
 
 # Create your views here.
@@ -21,9 +21,6 @@ def menu_principal(request):
     es_administrador = request.user.groups.filter(name='Administrador').exists()
     return render(request, 'menu_principal.html', {'es_administrador': es_administrador})
 
-@login_required  
-def menu_inicio(request):
-    return render(request, 'menu_inicio.html')
 
 def iniciar_sesion(request):
     if request.method == 'POST':
@@ -76,12 +73,12 @@ def mod_usuarios_home(request):
         )
 
     # Paginación para usuarios activos
-    paginator_activos = Paginator(usuarios_activos, 6)  # 10 usuarios activos por página
+    paginator_activos = Paginator(usuarios_activos, 8)  # 10 usuarios activos por página
     page_number_activos = request.GET.get('page_activos')
     usuarios_activos_page = paginator_activos.get_page(page_number_activos)
 
     # Paginación para usuarios inactivos
-    paginator_inactivos = Paginator(usuarios_inactivos, 6)  # 10 usuarios inactivos por página
+    paginator_inactivos = Paginator(usuarios_inactivos, 8)  # 10 usuarios inactivos por página
     page_number_inactivos = request.GET.get('page_inactivos')
     usuarios_inactivos_page = paginator_inactivos.get_page(page_number_inactivos)
 
@@ -323,7 +320,7 @@ def mod_productos_home(request):
     productos = ProductoInventario.objects.filter(nombre__icontains=search_term, is_active=True)
     
     # Paginación
-    paginator = Paginator(productos, 10)  # Muestra 10 productos por página
+    paginator = Paginator(productos, 8)  # Muestra 10 productos por página
     page_number = request.GET.get('page')  # Número de página desde la URL
     productos_paginados = paginator.get_page(page_number)
     
@@ -394,6 +391,7 @@ def crear_producto(request):
 def mod_categorias_home(request):
     search_term = request.GET.get('search', '')
     categoria = Categoria.objects.filter(is_active=True)
+    # buscar por el nombre de la categoria
     categoria = categoria.filter(nombre__icontains=search_term)
     
     categorias_inactivas = Categoria.objects.filter(is_active=False)
@@ -466,7 +464,8 @@ def crear_categoria(request):
 def mod_ventas_home(request):
     # Obtener las ventas
     # ventas = Ventas.objects.all()
-    ventas = Ventas.objects.filter(is_active=True)
+    #fecha en formato descendente
+    ventas = Ventas.objects.filter(is_active=True).order_by('-fecha_registro')
     search_term = request.GET.get('search', '')
     if search_term:
         ventas = ventas.filter(
@@ -508,8 +507,6 @@ def ver_detalle_venta(request, venta_id):
     }
     return render(request, 'ventas/ver_detalle_venta.html', context)
 
-
-# views.py
 from django.forms import modelformset_factory
 def editar_venta(request, venta_id):
     # Obtener la venta existente
@@ -601,36 +598,6 @@ def imprimir_venta(request, venta_id):
         'productos': productos,
     })
 
-def add_sale(request):
-    if request.method == 'POST':
-        venta_form = VentaForm(request.POST)
-
-        if venta_form.is_valid():
-            venta = venta_form.save(commit=False)
-            venta.save()
-            
-            # Procesar los productos enviados desde el formulario
-            productos_data = request.POST.getlist('productos[]')
-            cantidades_data = request.POST.getlist('cantidades[]')
-            precios_data = request.POST.getlist('precios[]')
-            
-            for nombre, cantidad, precio in zip(productos_data, cantidades_data, precios_data):
-                if nombre and cantidad and precio:
-                    producto = ProductoInventario(
-                        venta=venta,
-                        nombre=nombre,
-                        cantidad=int(cantidad),
-                        precio_unitario=float(precio)
-                    )
-                    producto.save()
-            
-            return redirect('some_success_url')
-    else:
-        venta_form = VentasForm()
-
-    return render(request, 'ventas/add_sale.html', {'venta_form': venta_form})
-
-
 from django.http import JsonResponse
 from django.db import transaction
 
@@ -700,3 +667,137 @@ def crear_venta(request):
         venta_form = VentasForm()
         return render(request, 'ventas/crear_venta.html', {'form': venta_form, 'productos': productos})
 
+#MOD PEDIDOS
+@login_required  
+def mod_pedidos_home(request):
+    pedidos = Pedidos.objects.filter(is_active=True).order_by('-fecha_registro')
+    search_term = request.GET.get('search', '')
+    if search_term:
+        pedidos = pedidos.filter(
+            
+            Q(id_pedido__icontains=search_term)
+        )
+
+    # Paginación
+    paginator = Paginator(pedidos, 8)  # Mostrar 8 clientes por página
+    page_number = request.GET.get('page')
+    pedidos_page = paginator.get_page(page_number)
+
+    return render(request, 'pedidos/mod_pedidos_home.html', {
+        'pedidos': pedidos_page,
+        'search_term': search_term
+    })
+    
+    
+def ver_productos_pedido(request, pedido_id):
+    # Obtener la pedido y los productos relacionados
+    pedido = get_object_or_404(Pedidos, id_pedido=pedido_id)
+    productos = ProductosPedido.objects.filter(pedido=pedido)  # Suponiendo que DetalleVenta enlaza venta y productos
+    
+    context = {
+        'pedido': pedido,
+        'productos': productos,
+    }
+    return render(request, 'pedidos/ver_productos_pedido.html', context)
+
+def ver_detalle_pedido(request, pedido_id):
+    # Obtener el pedido y los productos asociados
+    pedido = get_object_or_404(Pedidos, id_pedido=pedido_id)
+    productos = ProductosPedido.objects.filter(pedido=pedido)
+    monto_faltante = pedido.costo_total - pedido.monto_pagado
+    
+    context = {
+        'pedido': pedido,
+        'productos': productos,
+        'monto_faltante': monto_faltante
+    }
+    return render(request, 'pedidos/ver_detalle_pedido.html', context)
+
+def dar_de_baja_pedido(request, pedido_id):
+    pedido = get_object_or_404(Pedidos, id_pedido=pedido_id)
+    if pedido.is_active == True:
+        pedido.is_active = False
+        estado = "Dado de baja"
+    else:
+        pedido.is_active = True
+        estado = "Activo"
+    pedido.save()
+    messages.success(request, f'Pedido {estado} exitosamente.')
+    return redirect('mod_pedidos_home')
+
+
+@login_required
+def imprimir_pedido(request, pedido_id):
+    pedidos = get_object_or_404(Pedidos, id_pedido=pedido_id)
+    productos = ProductosPedido.objects.filter(pedido=pedidos) # Obtener los productos de la venta
+    monto_faltante = pedidos.costo_total - pedidos.monto_pagado
+
+    return render(request, 'pedidos/imprimir_pedido.html', {
+        'pedidos': pedidos,
+        'productos': productos,
+        'monto_faltante': monto_faltante
+    })
+    
+@login_required
+@transaction.atomic
+def crear_pedido(request):
+    if request.method == 'POST':
+        venta_form = PedidosForm(request.POST)
+        if venta_form.is_valid():
+            # Crear la venta
+            venta = venta_form.save(commit=False)
+            venta.id_vendedor = request.user
+            venta.total = 0
+            venta.save()
+
+            productos_data = []
+            for key, value in request.POST.items():
+                if 'productos-' in key and '-producto_id' in key:
+                    index = key.split('-')[1]  # Asegúrate de que el índice es único
+                    producto_id = request.POST.get(f'productos-{index}-producto_id', '').strip()
+                    cantidad = request.POST.get(f'productos-{index}-cantidad', '').strip()
+                    # Validar que producto_id y cantidad no estén vacíos y sean números
+                    if not producto_id.isdigit() or not cantidad.isdigit():
+                        continue  # Ignorar filas con datos inválidos
+
+                    productos_data.append({
+                        'producto_id': int(producto_id),
+                        'cantidad': int(cantidad),
+                    })
+
+            # Procesar productos y calcular el total
+            total_venta = 0
+            for producto_data in productos_data:
+                producto_id = producto_data['producto_id']
+                cantidad = producto_data['cantidad']
+
+                try:
+                    producto = ProductoInventario.objects.get(id_producto=producto_id)
+                    subtotal = producto.precio_unitario * cantidad
+                    total_venta += subtotal
+
+                    # Crear el registro de ProductosVenta
+                    ProductosPedido.objects.create(
+                        pedido=venta,
+                        producto=producto,
+                        cantidad=cantidad,
+                        subtotal=subtotal,
+                    )
+
+                    # Actualizar el stock del producto
+                    # producto.cantidad_stock -= cantidad
+                    producto.save()
+                except ProductoInventario.DoesNotExist:
+                    return JsonResponse({'error': f"Producto con ID {producto_id} no existe"}, status=400)
+
+            # Actualizar el total de la venta
+            venta.total = total_venta
+            venta.save()
+
+            return redirect('mod_pedidos_home')
+        else:
+            return JsonResponse({'success': False, 'errors': venta_form.errors}, status=400)
+    else:
+        productos = ProductoInventario.objects.all()
+        venta_form = PedidosForm()
+        return render(request, 'pedidos/crear_pedido.html', {'form': venta_form, 'productos': productos})

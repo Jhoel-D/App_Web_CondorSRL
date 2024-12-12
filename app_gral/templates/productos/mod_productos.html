@@ -25,8 +25,8 @@
                     <th>ID</th>
                     <th>Nombre</th>
                     <th>Categoría</th>
-                    <th>Precio</th>
-                    <th>Stock</th>
+                    <th>Precio Unitario</th>
+                    <th>Stock ud.</th>
                     <th>Imagen</th>
                     <th>Acciones</th>
                 </tr>
@@ -38,7 +38,7 @@
                     <td>{{ producto.id_producto }}</td>
                     <td>{{ producto.nombre }}</td>
                     <td>{{ producto.id_categoria.nombre }}</td>
-                    <td>{{ producto.precio_unitario|floatformat:2 }}</td>
+                    <td>{{ producto.precio_unitario|floatformat:2 }} Bs</td>
                     <td>{{ producto.cantidad_stock }}</td>
                     <td>
                         {% if producto.imagen_producto %}

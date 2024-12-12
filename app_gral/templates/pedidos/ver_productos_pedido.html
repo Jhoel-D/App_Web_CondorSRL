@@ -1,0 +1,51 @@
+{% extends 'base/base_home.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-5 text">
+    <h1 class="text-center fw-bold mb-4">Productos del Pedido</h1>
+    <p class="text-left fw-bold mb-4">Pedido ID: {{ pedido.id_pedido }}</p>
+    <p class="text-left fw-bold mb-4">Cliente: {{ pedido.id_cliente.first_name }} {{ pedido.id_cliente.last_name }}</p>
+    <!-- Cantidad de productos en la pedido -->
+    <p class="text-left fw-bold mb-4">Cantidad de Productos: {{ productos.count }}</p>
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="fas fa-boxes"></i> Productos que contiene la Pedido</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for producto in productos %}
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        {% if producto.producto.imagen_producto %}
+                        <div class="d-flex justify-content-center align-items-center">
+                           <img src="{{ producto.producto.imagen_producto.url }}" class="d-block img-fluid" alt="{{ producto.producto.nombre }}" style="height: 300px;">
+                        </div>
+                        {% else %}
+                        <div class="d-flex justify-content-center align-items-center">
+                            <img src="{% static '/logo.jpg' %}"class="d-block img-fluid" style="height: 300px;"">
+                        </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ producto.producto.nombre }}</h5>
+                            <p class="card-text"><strong>Cantidad:</strong> {{ producto.cantidad }}</p>
+                            <p class="card-text"><strong>Precio:</strong> {{ producto.producto.precio_unitario }} Bs</p>
+                            <p class="card-text"><strong>Subtotal:</strong> {{ producto.subtotal }} Bs</p>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <p class="text-center">No se encontraron productos en esta pedido.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <!-- Botón para regresar -->
+    <div class="text-end mt-4">
+        <a href="{% url 'mod_pedidos_home' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Regresar
+        </a>
+    </div>
+</div>
+{% endblock %}
