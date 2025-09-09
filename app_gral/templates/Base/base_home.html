@@ -30,7 +30,7 @@
                 </span>
 
                 <div class="text logo-text">
-                    <span class="name">_CONDOR S.R.L._</span>
+                    <span class="name">CONDOR S.R.L.</span>
                     {% comment %} <span class="text-center fw-bold mb-4 text profession">_CONDOR S.R.L_</span> {% endcomment %}
                 </div>
             </div>
@@ -84,16 +84,24 @@
                             <span class="text nav-text">PEDIDOS</span>
                         </a>
                     </li>
+
+                    <li class="nav-link">
+                        <a href="{% url 'mod_reportes_home' %}">
+                            <i class="fa-solid fa-square-poll-vertical icon"></i>
+                            <span class="text nav-text">REPORTES</span>
+                        </a>
+                    </li>
+                    
             </div>
             <div class="bottom-content">
                 {% if user.is_authenticated %}
-                    <li>
+                    <li class="mode">
                         <a href="{% url 'ver_perfil' %}">
                             <i class='bx bx-user-circle icon'></i>
                             <span class="text nav-text">VER PERFIL</span>
                         </a>
                     </li>
-                    <li>
+                    <li class="mode">
                         <a href="{% url 'cerrar_sesion' %}">
                             <i class='bx bx-log-out icon'></i>
                             <span class="text nav-text">CERRAR SESIÓN</span>

@@ -1,0 +1,301 @@
+{% extends 'base/base_home.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header del Reporte -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-boxes text-warning me-2"></i>Reporte de Inventario</h2>
+                    <p class="text-muted">Control y análisis del inventario de productos</p>
+                </div>
+                <div>
+                    <button class="btn btn-success me-2" onclick="exportarExcel()">
+                        <i class="fas fa-file-excel me-1"></i>Excel
+                    </button>
+                    <button class="btn btn-danger" onclick="exportarPDF()">
+                        <i class="fas fa-file-pdf me-1"></i>PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-filter me-2"></i>Filtros de Búsqueda</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Categoría</label>
+                                <select class="form-select" name="categoria">
+                                    <option value="">Todas las categorías</option>
+                                    {% for categoria in categorias %}
+                                    <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Estado de Stock</label>
+                                <select class="form-select" name="estado_stock">
+                                    <option value="">Todos</option>
+                                    <option value="bajo">Stock Bajo</option>
+                                    <option value="normal">Stock Normal</option>
+                                    <option value="alto">Stock Alto</option>
+                                    <option value="agotado">Agotado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Producto</label>
+                                <input type="text" class="form-control" name="producto" placeholder="Buscar producto...">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search me-1"></i>Buscar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas Rápidas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ total_productos }}</h4>
+                            <p class="mb-0">Total Productos</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-box fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>${{ valor_inventario|floatformat:2 }}</h4>
+                            <p class="mb-0">Valor Total</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-dollar-sign fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ productos_bajo_stock }}</h4>
+                            <p class="mb-0">Stock Bajo</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ productos_agotados }}</h4>
+                            <p class="mb-0">Agotados</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-times-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-pie me-2"></i>Distribución por Categoría</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoriaChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-bar me-2"></i>Estado del Stock</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="stockChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Inventario -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-table me-2"></i>Detalle del Inventario</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th><i class="fas fa-hashtag me-1"></i>ID</th>
+                                    <th><i class="fas fa-box me-1"></i>Producto</th>
+                                    <th><i class="fas fa-tags me-1"></i>Categoría</th>
+                                    <th><i class="fas fa-cubes me-1"></i>Stock Actual</th>
+                                    <th><i class="fas fa-chart-line me-1"></i>Stock Mínimo</th>
+                                    <th><i class="fas fa-dollar-sign me-1"></i>Precio Unitario</th>
+                                    <th><i class="fas fa-calculator me-1"></i>Valor Total</th>
+                                    <th><i class="fas fa-info-circle me-1"></i>Estado</th>
+                                    <th><i class="fas fa-calendar me-1"></i>Última Actualización</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for producto in productos %}
+                                <tr>
+                                    <td>{{ producto.id }}</td>
+                                    <td>{{ producto.nombre }}</td>
+                                    <td>{{ producto.categoria.nombre }}</td>
+                                    <td>{{ producto.stock_actual }}</td>
+                                    <td>{{ producto.stock_minimo }}</td>
+                                    <td>${{ producto.precio|floatformat:2 }}</td>
+                                    <td>${{ producto.valor_total|floatformat:2 }}</td>
+                                    <td>
+                                        {% if producto.stock_actual == 0 %}
+                                            <span class="badge bg-danger">Agotado</span>
+                                        {% elif producto.stock_actual <= producto.stock_minimo %}
+                                            <span class="badge bg-warning">Stock Bajo</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Normal</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ producto.fecha_actualizacion|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center">No hay productos registrados</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Paginación -->
+                    {% if productos.has_other_pages %}
+                    <nav aria-label="Paginación">
+                        <ul class="pagination justify-content-center">
+                            {% if productos.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=">Anterior</a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in productos.paginator.page_range %}
+                                {% if productos.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if productos.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=">Siguiente</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Gráfico de Categorías
+const ctxCategoria = document.getElementById('categoriaChart').getContext('2d');
+new Chart(ctxCategoria, {
+    type: 'pie',
+    data: {
+        labels: {{ categorias_labels|safe }},
+        datasets: [{
+            data: {{ categorias_data|safe }},
+            backgroundColor: [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Gráfico de Stock
+const ctxStock = document.getElementById('stockChart').getContext('2d');
+new Chart(ctxStock, {
+    type: 'bar',
+    data: {
+        labels: ['Normal', 'Stock Bajo', 'Agotado'],
+        datasets: [{
+            label: 'Productos',
+            data: [{{ stock_normal }}, {{ stock_bajo }}, {{ stock_agotado }}],
+            backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+function exportarExcel() {
+    window.location.href = "";
+}
+
+function exportarPDF() {
+    window.location.href = "";
+}
+</script>
+{% endblock %}

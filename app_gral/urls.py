@@ -61,6 +61,16 @@ urlpatterns = [
     path('pedidos/imprimir/<int:pedido_id>/', views.imprimir_pedido, name='imprimir_pedido'),
     path('pedidos/editar/<int:venta_id>/', views.editar_venta, name='editar_venta'),
     path('pedidos/crear_pedido/', views.crear_pedido, name='crear_pedido'),
+    
+    #REPORTES
+    path('reportes/', views.mod_reportes_home, name='mod_reportes_home'),
+    path('reportes/pedidos/', views.reporte_pedidos, name='reporte_pedidos'),
+    path('reportes/ventas/', views.reporte_ventas, name='reporte_ventas'),
+    path('reportes/financiero/', views.reporte_financiero, name='reporte_financiero'),
+    path('reportes/clientes/', views.reporte_clientes, name='reporte_clientes'),
+    path('reportes/productos/', views.reporte_productos, name='reporte_productos'),
+    path('reportes/dashboard/', views.dashboard, name='dashboard'),
+    
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

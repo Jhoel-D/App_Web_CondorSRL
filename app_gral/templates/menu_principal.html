@@ -65,6 +65,7 @@
             </div>
           </div>
         </div>
+
       {% endif %}
 
       <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
@@ -99,8 +100,21 @@
           </div>
         </div>
       </div>
+
+      <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+          <div class="card text-center shadow-sm">
+            <div class="card-body">
+              <i class="fa-solid fa-square-poll-vertical" style="font-size: 40px;"></i>
+              <h5 class="card-title">REPORTES</h5>
+              <p class="card-text">Vistas de reportes</p>
+              <a href="{% url 'mod_reportes_home' %}" class="btn btn-primary">Ver Más</a>
+            </div>
+          </div>
+        </div>
+
     </div>
 
+    
     {% if user.is_authenticated %}
       <!-- Opciones de Perfil y Cerrar Sesión -->
       <div class="col-12 text-center mt-4">

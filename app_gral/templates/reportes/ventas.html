@@ -1,0 +1,335 @@
+{% extends 'base/base_home.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="fw-bold text-primary mb-1">
+                        <i class="fa-solid fa-chart-bar me-2"></i>
+                        REPORTE DE VENTAS
+                    </h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="">Reportes</a></li>
+                            <li class="breadcrumb-item active">Ventas</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <button class="btn btn-success me-2" onclick="exportarExcel()">
+                        <i class="fa-solid fa-file-excel me-1"></i>Excel
+                    </button>
+                    <button class="btn btn-danger" onclick="exportarPDF()">
+                        <i class="fa-solid fa-file-pdf me-1"></i>PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fa-solid fa-filter me-2"></i>Filtros de Búsqueda</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" id="filtrosForm">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Fecha Desde</label>
+                        <input type="date" class="form-control" name="fecha_desde" value="{{ request.GET.fecha_desde }}">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Fecha Hasta</label>
+                        <input type="date" class="form-control" name="fecha_hasta" value="{{ request.GET.fecha_hasta }}">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Cliente</label>
+                        <select class="form-select" name="cliente">
+                            <option value="">Todos los clientes</option>
+                            {% for cliente in clientes %}
+                                <option value="{{ cliente.id }}" {% if request.GET.cliente == cliente.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ cliente.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Estado</label>
+                        <select class="form-select" name="estado">
+                            <option value="">Todos los estados</option>
+                            <option value="completada" {% if request.GET.estado == "completada" %}selected{% endif %}>Completada</option>
+                            <option value="pendiente" {% if request.GET.estado == "pendiente" %}selected{% endif %}>Pendiente</option>
+                            <option value="cancelada" {% if request.GET.estado == "cancelada" %}selected{% endif %}>Cancelada</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fa-solid fa-search me-1"></i>Filtrar
+                        </button>
+                        <a href="" class="btn btn-secondary">
+                            <i class="fa-solid fa-refresh me-1"></i>Limpiar
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Estadísticas resumidas -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="fw-bold">{{ total_ventas|default:"0" }}</h4>
+                            <p class="mb-0">Total Ventas</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fa-solid fa-shopping-cart fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="fw-bold">${{ total_ingresos|default:"0"|floatformat:0 }}</h4>
+                            <p class="mb-0">Total Ingresos</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fa-solid fa-dollar-sign fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="fw-bold">${{ promedio_venta|default:"0"|floatformat:0 }}</h4>
+                            <p class="mb-0">Promedio por Venta</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fa-solid fa-chart-line fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="fw-bold">{{ productos_vendidos|default:"0" }}</h4>
+                            <p class="mb-0">Productos Vendidos</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fa-solid fa-box fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de ventas -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Tendencia de Ventas</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="ventasChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Top Productos</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="productosChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de ventas -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Detalle de Ventas</h5>
+            <div class="d-flex align-items-center">
+                <label class="me-2">Mostrar:</label>
+                <select class="form-select form-select-sm" style="width: auto;" onchange="cambiarPaginacion(this.value)">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Productos</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for venta in ventas %}
+                        <tr>
+                            <td><strong>#{{ venta.id }}</strong></td>
+                            <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
+                            <td>{{ venta.cliente.nombre }}</td>
+                            <td>{{ venta.total_productos }} items</td>
+                            <td><strong>${{ venta.total|floatformat:0 }}</strong></td>
+                            <td>
+                                {% if venta.estado == 'completada' %}
+                                    <span class="badge bg-success">Completada</span>
+                                {% elif venta.estado == 'pendiente' %}
+                                    <span class="badge bg-warning">Pendiente</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Cancelada</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" onclick="verDetalle({{ venta.id }})">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <i class="fa-solid fa-inbox fa-2x text-muted mb-2"></i>
+                                <p class="text-muted mb-0">No se encontraron ventas con los filtros aplicados</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if ventas.has_other_pages %}
+        <div class="card-footer">
+            <nav aria-label="Paginación de ventas">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if ventas.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ ventas.previous_page_number }}">Anterior</a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in ventas.paginator.page_range %}
+                        {% if ventas.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if ventas.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ ventas.next_page_number }}">Siguiente</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Scripts para gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Gráfico de tendencia de ventas
+const ctx1 = document.getElementById('ventasChart').getContext('2d');
+const ventasChart = new Chart(ctx1, {
+    type: 'line',
+    data: {
+        labels: {{ fechas_grafico|safe }},
+        datasets: [{
+            label: 'Ventas',
+            data: {{ ventas_grafico|safe }},
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Gráfico de productos más vendidos
+const ctx2 = document.getElementById('productosChart').getContext('2d');
+const productosChart = new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+        labels: {{ productos_labels|safe }},
+        datasets: [{
+            data: {{ productos_data|safe }},
+            backgroundColor: [
+                '#FF6384',
+                '#36A2EB',
+                '#FFCE56',
+                '#4BC0C0',
+                '#9966FF'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Funciones auxiliares
+function exportarExcel() {
+    window.location.href = '?' + new URLSearchParams(window.location.search);
+}
+
+function exportarPDF() {
+    window.location.href = '?' + new URLSearchParams(window.location.search);
+}
+
+function verDetalle(ventaId) {
+    window.location.href = ''.replace('0', ventaId);
+}
+
+function cambiarPaginacion(valor) {
+    const url = new URL(window.location);
+    url.searchParams.set('per_page', valor);
+    window.location.href = url.toString();
+}
+</script>
+{% endblock %}

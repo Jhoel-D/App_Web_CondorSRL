@@ -495,7 +495,6 @@ def ver_productos_venta(request, venta_id):
     return render(request, 'ventas/ver_productos_venta.html', context)
 
 
-
 def ver_detalle_venta(request, venta_id):
     # Obtener la venta y los productos asociados
     venta = get_object_or_404(Ventas, id_venta=venta_id)
@@ -801,3 +800,25 @@ def crear_pedido(request):
         productos = ProductoInventario.objects.all()
         venta_form = PedidosForm()
         return render(request, 'pedidos/crear_pedido.html', {'form': venta_form, 'productos': productos})
+    
+#MOD REPORTES
+@login_required
+def mod_reportes_home(request):
+    return render(request, 'reportes/mod_reportes_home.html')
+def reporte_clientes(request):
+    return render(request, 'reportes/clientes.html')
+
+def reporte_ventas(request):
+    return render(request, 'reportes/ventas.html')
+
+def reporte_productos(request):
+    return render(request, 'reportes/productos.html')
+
+def reporte_financiero(request):
+    return render(request, 'reportes/financiero.html')
+
+def dashboard(request):
+    return render(request, 'reportes/dashboard.html')
+
+def reporte_pedidos(request):
+    return render(request, 'reportes/pedidos.html')
