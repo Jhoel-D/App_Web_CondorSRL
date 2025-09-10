@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User, Group
 
-from .models import Usuario, ProductoInventario, Categoria, Usuario, Ventas, ProductosVenta, Pedidos, ProductosPedido
+from .models import Usuario, ProductoInventario, Categoria, Usuario, Ventas, ProductosVenta, Pedidos, ProductosPedido, Cliente
 
 class UsuarioUpdateForm(forms.ModelForm):
     class Meta:
@@ -21,15 +21,19 @@ class UsuarioForm(forms.ModelForm):
         model = Usuario
         fields = ['first_name', 'last_name', 'email', 'CI', 'fecha_nacimiento', 'telefono', 'domicilio', 'domicilio', 'imagen_perfil']
 
+class ClienteForm(forms.ModelForm):
+    class Meta:
+        model = Cliente
+        fields = ['CI', 'nombre', 'apellido', 'telefono', 'direccion', 'email', 'fecha_nacimiento']
+
 
 class UsuarioCreateForm(forms.ModelForm):
     grupo = forms.ModelChoiceField(
-        queryset=Group.objects.exclude(name="Cliente"),  # Excluye el grupo "Cliente"
+        queryset=Group.objects.all(), # Excluye el grupo "Cliente"
         required=False,
         label="Grupo",
         widget=forms.Select(attrs={'class': 'form-select'})
     )
-
     class Meta:
         model = Usuario
         fields = ['username', 'password', 'first_name', 'last_name', 'email', 'telefono', 'CI', 'domicilio', 'fecha_nacimiento', 'imagen_perfil']
@@ -59,6 +63,20 @@ class UsuarioCreateForm(forms.ModelForm):
                     raise ValueError("El grupo 'Cliente' no existe. Por favor, créalo en el sistema.")  
             usuario.groups.add(grupo)  # Asocia el grupo (seleccionado o predeterminado) al usuario
         return usuario
+
+class ClienteCreateForm(forms.ModelForm):
+    class Meta:
+        model = Cliente
+        fields = ['CI', 'nombre', 'apellido', 'telefono', 'direccion', 'email', 'fecha_nacimiento']
+        widgets = {
+            'CI': forms.NumberInput(attrs={'class': 'form-control'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'apellido': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'telefono': forms.NumberInput(attrs={'class': 'form-control'}),
+            'direccion': forms.TextInput(attrs={'class': 'form-control'}),
+            'fecha_nacimiento': forms.DateInput(attrs={'class': 'form-select'}),
+        }
 
 class ProductoInventarioForm(forms.ModelForm):
     class Meta:
@@ -132,20 +150,12 @@ class VentasForm(forms.ModelForm):
         widgets = {
             'costo_total': forms.TextInput(attrs={'readonly': 'readonly'}),
         }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Obtener el grupo 'Cliente'
-        try:
-            grupo_cliente = Group.objects.get(name='Cliente')
-        except Group.DoesNotExist:
-            grupo_cliente = None
-
-        # Filtrar clientes activos y que pertenezcan al grupo 'Cliente'
-        if grupo_cliente:
-            self.fields['id_cliente'].queryset = grupo_cliente.user_set.filter(is_active=True)
-        else:
-            # Si el grupo no existe, no mostrar ningún cliente
-            self.fields['id_cliente'].queryset = User.objects.none()
+        self.fields['id_cliente'].queryset = Cliente.objects.filter(is_active=True)
+    
+    
 
 class ProductosVentaForm(forms.ModelForm):
     class Meta:
@@ -177,20 +187,6 @@ class PedidosForm(forms.ModelForm):
         widgets = {
             'costo_total': forms.TextInput(attrs={'readonly': 'readonly'}),
         }
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Obtener el grupo 'Cliente'
-        try:
-            grupo_cliente = Group.objects.get(name='Cliente')
-        except Group.DoesNotExist:
-            grupo_cliente = None
-
-        # Filtrar clientes activos y que pertenezcan al grupo 'Cliente'
-        if grupo_cliente:
-            self.fields['id_cliente'].queryset = grupo_cliente.user_set.filter(is_active=True)
-        else:
-            # Si el grupo no existe, no mostrar ningún cliente
-            self.fields['id_cliente'].queryset = User.objects.none()
         
 class ProductosPedidoForm(forms.ModelForm):
     class Meta:

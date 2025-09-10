@@ -18,7 +18,7 @@
             <div class="row">
                 <div class="col-md-6">
                     <p><strong>ID del Pedido:</strong> {{ pedido.id_pedido }}</p>
-                    <p><strong>Cliente:</strong> {{ pedido.id_cliente.first_name }} {{ pedido.id_cliente.last_name }}</p>
+                    <p><strong>Cliente:</strong> {{ pedido.id_cliente.nombre }} {{ pedido.id_cliente.apellido }}</p>
                     <p><strong>Fecha del Pedido:</strong> {{ pedido.fecha_registro }}</p>
                     <p><strong>Estado:</strong> {{ pedido.estado }}</p>
                 </div>

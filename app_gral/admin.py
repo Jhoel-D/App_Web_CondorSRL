@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
-from .models import Usuario, Ventas, Categoria, ProductoInventario, CarritoItems, IngresoProducto, ProductosPedido, ProductosVenta, Pedidos
+from .models import Usuario, Ventas, Categoria, ProductoInventario, IngresoProducto, ProductosPedido, ProductosVenta, Pedidos, Cliente
 
 # Definir una clase para personalizar la vista del usuario en el admin
 #MOD USUARIOS
@@ -36,6 +36,9 @@ admin.site.register(Usuario, UsuarioAdmin)
 #MOD CATEGORÍAS
 admin.site.register(Categoria)
 
+#MOD CLIENTES
+admin.site.register(Cliente)
+
 #MOD INVENTARIO
 @admin.register(ProductoInventario)
 class ProductoInventarioAdmin(admin.ModelAdmin):
@@ -56,9 +59,9 @@ class ProductosVentaInline(admin.TabularInline):
 class VentasAdmin(admin.ModelAdmin):
     list_display = ('id_venta', 'id_cliente', 'id_vendedor', 'estado', 'fecha_registro', 'costo_total', 'is_active')
     readonly_fields = ('costo_total',)  # Permitir solo lectura en el costo total
-    search_fields = ('id_cliente__username', 'id_vendedor__username')
+    search_fields = ('id_vendedor__username', 'id_cliente__nombre')
     list_filter = ('estado', 'fecha_registro')
-    autocomplete_fields = ['id_cliente', 'id_vendedor']
+    autocomplete_fields = ['id_vendedor']
     inlines = [ProductosVentaInline]
 
     def save_model(self, request, obj, form, change):
@@ -79,9 +82,9 @@ class ProductosPedidoInline(admin.TabularInline):
 class PedidosAdmin(admin.ModelAdmin):
     list_display = ('id_pedido', 'id_cliente', 'id_vendedor', 'estado', 'fecha_registro','beneficiario','monto_pagado', 'celular_a_comunicar','costo_total',)
     readonly_fields = ('costo_total',)
-    search_fields = ('id_cliente__username', 'id_vendedor__username')
+    search_fields = ('id_vendedor__username', 'id_cliente__nombre')
     list_filter = ('estado', 'fecha_registro')
-    autocomplete_fields = ['id_cliente', 'id_vendedor']  # Usar nombres correctos de campos
+    autocomplete_fields = ['id_vendedor']  # Usar nombres correctos de campos
     inlines = [ProductosPedidoInline]  # Permitir agregar productos directamente desde la vista de ventas
     def save_model(self, request, obj, form, change):
         # No recalcular el costo total aquí, ya que lo maneja el modelo
@@ -92,5 +95,3 @@ class PedidosAdmin(admin.ModelAdmin):
 class IngresoProductoAdmin(admin.ModelAdmin):
     list_display = ('id_producto', 'cantidad', 'fecha_ingreso', 'id_usuario')
     list_filter = ('fecha_ingreso',)
-
-admin.site.register(CarritoItems)

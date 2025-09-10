@@ -2,7 +2,10 @@
 
 {% block content %}
 <div class="container mt-5 text">
-    <h1 class="text-center fw-bold mb-1">Panel de Usuarios</h1>
+     <h2 class="fw-bold text-primary mb-1">
+        <i class="fas fa-users"></i>
+        MÓDULO DE USUARIOS
+    </h2>
 
 <!-- Barra de búsqueda -->
 <div class="input-group mb-3">
@@ -194,12 +197,12 @@
     function deleteUsuario(usuarioId) {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: "¡Este usuario será dado de baja!",
+            text: "¡Este usuario cambiara su estado activo/inactivo!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, eliminarlo/dar de baja',
+            confirmButtonText: 'Sí, confirmar',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {

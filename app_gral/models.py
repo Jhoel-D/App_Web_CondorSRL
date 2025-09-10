@@ -2,10 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from django.db.models.signals import pre_delete, post_save, post_delete
-
 from django.dispatch import receiver
-
-        
+   
 class Usuario(AbstractUser):
     CI = models.CharField(max_length=20, unique=True)
     fecha_nacimiento = models.DateField(null=True, blank=True)
@@ -37,6 +35,23 @@ class Usuario(AbstractUser):
             if not self.imagen_perfil.name.split('.')[-1].lower() in valid_extensions:
                 raise ValidationError("El formato de la imagen debe ser JPG, JPEG, PNG o GIF.")
 
+class Cliente(models.Model):
+    CI = models.CharField(max_length=20, unique=True)
+    nombre = models.CharField(max_length=100)
+    apellido = models.CharField(max_length=100)
+    telefono = models.CharField(max_length=15)
+    direccion = models.TextField()
+    email = models.EmailField(unique=True)
+    fecha_nacimiento = models.DateField(null=True, blank=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+    
+    def get_status(self):
+        return "Activo" if self.is_active else "Dado de baja"
+
+    def __str__(self):
+        return f"{self.nombre} {self.apellido}"
+
 class Categoria(models.Model):
     id_categoria = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
@@ -57,6 +72,7 @@ class ProductoInventario(models.Model):
     caracteristicas = models.TextField()
     cantidad_stock = models.PositiveIntegerField(default=0)
     imagen_producto = models.ImageField(upload_to='bd_images/', null=True, blank=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     
     def get_status(self):
@@ -137,7 +153,7 @@ class Ventas(models.Model):
         ('COMPLETADO', 'Completado'),
     ]
     id_venta = models.AutoField(primary_key=True)
-    id_cliente = models.ForeignKey('Usuario', on_delete=models.CASCADE, related_name='ventas_como_cliente')
+    id_cliente = models.ForeignKey('Cliente', on_delete=models.CASCADE, related_name='ventas_como_cliente')
     id_vendedor = models.ForeignKey('Usuario', on_delete=models.CASCADE, related_name='ventas_como_vendedor')
     fecha_registro = models.DateTimeField(auto_now_add=True)
     costo_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -147,15 +163,6 @@ class Ventas(models.Model):
     def calcular_costo_total(self):
         # Calcular el costo total sumando los subtotales de los productos
         return sum(item.subtotal for item in self.detalle_productos.all())
-    # @transaction.atomic
-    # def save(self, *args, **kwargs):
-    #     # Guardar la instancia para asignarle un ID si no lo tiene
-    #     if not self.pk:
-    #         super().save(*args, **kwargs)  # Guardado inicial
-
-    #     # Calcular el costo total y actualizar el campo
-    #     self.costo_total = self.calcular_costo_total()
-    #     super().save(update_fields=['costo_total'])  # Guardar el costo total actualizado
     @transaction.atomic
     def save(self, *args, **kwargs):
         if self.pk:  # Si la venta ya existe, recalcula el costo total solo si los productos cambian
@@ -163,26 +170,7 @@ class Ventas(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Venta {self.id_venta} - Cliente: {self.id_cliente.username}"
-
-class CarritoItems(models.Model):
-    id_carrito = models.AutoField(primary_key=True)
-    id_cliente = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    id_producto = models.ForeignKey(ProductoInventario, on_delete=models.CASCADE)
-    cantidad = models.IntegerField()
-
-    def __str__(self):
-        return f"Carrito {self.id_carrito} - {self.id_producto.nombre}"
-
-    @property
-    def total_producto(self):
-        """Calcula el total de un producto específico (cantidad * precio)."""
-        return self.id_producto.precio_unitario * self.cantidad
-
-    @classmethod
-    def total_carrito(cls, cliente):
-        """Calcula el total del carrito de un cliente específico."""
-        return sum(item.total_producto for item in cls.objects.filter(id_cliente=cliente))
+        return f"Venta {self.id_venta} - Cliente: {self.id_cliente.nombre}"
 
 #MOD PEDIDOS
 class ProductosPedido(models.Model):
@@ -191,7 +179,6 @@ class ProductosPedido(models.Model):
     cantidad = models.PositiveIntegerField()
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
     
-
     def clean(self):
         # Obtener la instancia previa si existe
         if self.pk:
@@ -238,7 +225,7 @@ class Pedidos(models.Model):
         ('CANCELADO', 'Cancelado'),
     ]
     id_pedido = models.AutoField(primary_key=True)
-    id_cliente = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='pedidos_como_cliente')
+    id_cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='pedidos_como_cliente')
     id_vendedor = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='pedidos_como_vendedor')
     fecha_registro = models.DateTimeField(auto_now_add=True)
     beneficiario = models.CharField(max_length=100)
@@ -271,7 +258,7 @@ class Pedidos(models.Model):
         super().save(*args, **kwargs)
     
     def __str__(self):
-        return f"Pedido {self.id_pedido} - Cliente: {self.id_cliente.username}"
+        return f"Pedido {self.id_pedido} - Cliente: {self.id_cliente.nombre}"
 #PARA VENTAS
 @transaction.atomic
 @receiver(post_save, sender=ProductosVenta)

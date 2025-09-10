@@ -5,7 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm #Añadido
 from django.contrib.auth.decorators import login_required
 
 from django.contrib.auth.models import Group
-from .models import Usuario, ProductoInventario, Categoria, Ventas, ProductosVenta, Pedidos, ProductosPedido
+from .models import Usuario, ProductoInventario, Categoria, Ventas, ProductosVenta, Pedidos, ProductosPedido, Cliente
 from django.db.models import Q #para or en python
 from django.core.paginator import Paginator
 
@@ -13,7 +13,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
-from .forms import UsuarioUpdateForm, ProductoInventarioForm, ProductoInventarioCreateForm, UsuarioForm, UsuarioCreateForm, CategoriaForm, CategoriaCreateForm, ProductosVentaForm, VentasForm, PedidosForm
+from .forms import UsuarioUpdateForm, ProductoInventarioForm, ProductoInventarioCreateForm, UsuarioForm, UsuarioCreateForm, CategoriaForm, CategoriaCreateForm, ProductosVentaForm, VentasForm, PedidosForm, ClienteCreateForm, ClienteForm
 
 
 # Create your views here.
@@ -46,11 +46,8 @@ def cerrar_sesion (request):
 #MOD USUARIOS
 @login_required
 def mod_usuarios_home(request):
-    # Obtener el grupo "Cliente"
-    grupo_clientes = Group.objects.get(name='Cliente')
-
-    # Filtrar usuarios excluyendo los del grupo "Cliente"
-    todos_usuarios = Usuario.objects.exclude(groups=grupo_clientes)
+    # Obtener usuarios
+    todos_usuarios = Usuario.objects.all()
 
     # Separar usuarios activos e inactivos
     usuarios_activos = todos_usuarios.filter(is_active=True)
@@ -92,16 +89,6 @@ def mod_usuarios_home(request):
 def ver_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     return render(request, 'usuarios/mod_personal/ver_usuario.html', {'usuario': usuario})
-
-
-# from django.http import Http404
-
-# def ver_usuario(request, usuario_id):
-#     try:
-#         usuario = Usuario.objects.get(id=usuario_id, is_active=True)
-#     except Usuario.DoesNotExist:
-#         raise Http404("Usuario no encontrado o inactivo.")
-#     return render(request, 'usuarios/mod_personal/ver_usuario.html', {'usuario': usuario})
 
 def editar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
@@ -163,16 +150,15 @@ def registrar_usuario(request):
 # MOD CLIENTES
 @login_required  
 def mod_clientes_home(request):
-    grupo_clientes = Group.objects.get(name='Cliente')
-    usuarios = Usuario.objects.filter(groups=grupo_clientes)
-    usuarios = usuarios.filter(is_active=True)
+    grupo_clientes = Cliente.objects.all()
+    usuarios = grupo_clientes.filter(is_active=True)
 
     # Búsqueda por término
     search_term = request.GET.get('search', '')
     if search_term:
         usuarios = usuarios.filter(
-            Q(first_name__icontains=search_term) |
-            Q(last_name__icontains=search_term) |
+            Q(nombre__icontains=search_term) |
+            Q(apellido__icontains=search_term) |
             Q(CI__icontains=search_term)
         )
 
@@ -186,15 +172,14 @@ def mod_clientes_home(request):
         'search_term': search_term
     })
 def ver_cliente(request, cliente_id):
-    cliente = get_object_or_404(Usuario, id=cliente_id)
+    cliente = get_object_or_404(Cliente, id=cliente_id)
     return render(request, 'usuarios/mod_cliente/ver_cliente.html', {'cliente': cliente})
 
 
 def editar_cliente(request, cliente_id):
-    usuario = get_object_or_404(Usuario, id=cliente_id)
-
+    usuario = get_object_or_404(Cliente, id=cliente_id)
     if request.method == 'POST':
-        form = UsuarioForm(request.POST, request.FILES, instance=usuario)
+        form = ClienteForm(request.POST, request.FILES, instance=usuario)
         if form.is_valid():
             form.save()
             messages.success(request, 'Cliente editado exitosamente.')
@@ -204,12 +189,12 @@ def editar_cliente(request, cliente_id):
             print(form.errors)
             messages.error(request, 'Por favor, corrige los errores del formulario.')
     else:
-        form = UsuarioForm(instance=usuario)
+        form = ClienteForm(instance=usuario)
 
     return render(request, 'usuarios/mod_cliente/editar_cliente.html', {'form': form, 'usuario': usuario})
 
 def eliminar_cliente(request, cliente_id):
-    cliente = get_object_or_404(Usuario, id=cliente_id)
+    cliente = get_object_or_404(Cliente, id=cliente_id)
 
     # Cambiar el estado del usuario
     if cliente.is_active:
@@ -229,7 +214,7 @@ def eliminar_cliente(request, cliente_id):
 
 def registrar_cliente(request):
     if request.method == 'POST':
-        form = UsuarioCreateForm(request.POST, request.FILES)
+        form = ClienteCreateForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()  # Esto ya maneja la asociación del grupo en el método save()
             messages.success(request, 'Cliente creado exitosamente.')
@@ -237,7 +222,7 @@ def registrar_cliente(request):
         else:
             messages.error(request, 'Por favor, corrija los errores en el formulario.')
     else:
-        form = UsuarioCreateForm()
+        form = ClienteCreateForm()
     
     return render(request, 'usuarios/mod_cliente/registrar_cliente.html', {'form': form})
 #MOD ROLES

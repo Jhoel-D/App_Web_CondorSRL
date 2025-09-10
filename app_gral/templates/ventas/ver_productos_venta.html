@@ -4,7 +4,7 @@
 <div class="container mt-5 text">
     <h1 class="text-center fw-bold mb-4">Productos de la Venta</h1>
     <p class="text-left fw-bold mb-4">Venta ID: {{ venta.id_venta }}</p>
-    <p class="text-left fw-bold mb-4">Cliente: {{ venta.id_cliente.first_name }} {{ venta.id_cliente.last_name }}</p>
+    <p class="text-left fw-bold mb-4">Cliente: {{ venta.id_cliente.nombre }} {{ venta.id_cliente.apellido }}</p>
     <!-- Cantidad de productos en la venta -->
     <p class="text-left fw-bold mb-4">Cantidad de Productos: {{ productos.count }}</p>
     <div class="card">
@@ -27,7 +27,7 @@
                         {% endif %}
                         <div class="card-body">
                             <h5 class="card-title">{{ producto.producto.nombre }}</h5>
-                            <p class="card-text"><strong>Cantidad:</strong> {{ producto.cantidad }}</p>
+                            <p class="card-text"><strong>Cantidad:</strong> {{ producto.cantidad }} Unidades</p>
                             <p class="card-text"><strong>Precio:</strong> {{ producto.producto.precio_unitario }} Bs</p>
                             <p class="card-text"><strong>Subtotal:</strong> {{ producto.subtotal }} Bs</p>
                         </div>

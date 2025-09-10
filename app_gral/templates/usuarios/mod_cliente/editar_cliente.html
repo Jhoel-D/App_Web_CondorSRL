@@ -10,51 +10,38 @@
         <!-- Primera columna -->
         <div class="col-md-6">
             <div class="form-group text">
+                <label for="id_ci" class="form-label">CI</label>
+                <input type="text" class="form-control" id="id_ci" name="CI" value="{{ usuario.CI }}" required>
+            </div>
+            <div class="form-group text">
                 <label for="id_nombre" class="form-label">Nombres</label>
-                <input type="text" class="form-control" id="id_first_name" name="first_name" value="{{ usuario.first_name }}" required>
+                <input type="text" class="form-control" id="id_first_name" name="nombre" value="{{ usuario.nombre }}" required>
             </div>
             <div class="form-group text">
                 <label for="id_apellidos" class="form-label">Apellidos</label>
-                <input type="text" class="form-control" id="id_last_name" name="last_name" value="{{ usuario.last_name }}" required>
+                <input type="text" class="form-control" id="id_last_name" name="apellido" value="{{ usuario.apellido }}" required>
+            </div>
+
+            <div class="form-group text">
+                <label for="id_celular" class="form-label">Teléfono</label>
+                <input type="text" class="form-control" id="id_celular" name="telefono" value="{{ usuario.telefono }}" required>
+            </div>
+        </div>
+        
+        <!-- Segunda columna -->
+        <div class="col-md-6 text">
+             <div class="form-group text">
+                <label for="id_domicilio" class="form-label">Domicilio</label>
+                <textarea class="form-control" id="id_direccion" name="direccion">{{ usuario.direccion }}</textarea>
             </div>
             <div class="form-group text">
                 <label for="id_email" class="form-label">email</label>
                 <input type="email" class="form-control" id="id_email" name="email" value="{{ usuario.email }}" required>
             </div>
             <div class="form-group text">
-                <label for="id_ci" class="form-label">CI</label>
-                <input type="text" class="form-control" id="id_ci" name="CI" value="{{ usuario.CI }}" required>
-            </div>
-            <div class="form-group text">
                 <label for="id_fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
                 <input type="date" class="form-control" id="id_fecha_nacimiento" name="fecha_nacimiento" value="{{ usuario.fecha_nacimiento|date:'Y-m-d' }}" required>
             </div>
-        </div>
-        
-        <!-- Segunda columna -->
-        <div class="col-md-6 text">
-            <div class="form-group">
-                <label for="id_celular" class="form-label">Teléfono</label>
-                <input type="text" class="form-control" id="id_celular" name="telefono" value="{{ usuario.telefono }}" required>
-            </div>
-            <div class="form-group">
-                <label for="id_domicilio" class="form-label">Domicilio</label>
-                <textarea class="form-control" id="id_domicilio" name="domicilio">{{ usuario.domicilio }}</textarea>
-            </div>
-            <div class="form-group">
-                <label for="id_imagen_perfil" class="form-label">Imagen de Perfil</label>
-                <input type="file" class="form-control" id="id_imagen_perfil" name="imagen_perfil">
-                {% if usuario.imagen_perfil %}
-                    <p class="mt-2 text">Imagen actual: 
-                        <img src="{{ usuario.imagen_perfil.url }}" width="250" class="img-thumbnail">
-                    </p>
-                {% else %}
-                    <p class="mt-2 text">Sin Imagen: 
-                        <img src="{% static '/img/perfil_defecto.jpg' %}" width="250" class="rounded-circle img-fluid" alt="Sin imagen">
-                    </p>
-                {% endif %}
-            </div>
-
         </div>
         
         <!-- Botones de acción -->

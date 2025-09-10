@@ -1,8 +1,7 @@
 {% extends 'base/base_home.html' %}
-{% load static %}
 {% block content %}
 <div class="container mt-5 text">
-    <h1 class="text-center fw-bold mb-4">Registrar Usuario</h1>
+    <h1 class="text-center fw-bold mb-4">Registrar Cliente</h1>
     
     <form method="POST" enctype="multipart/form-data" class="row g-4" id="formCrearProducto">
         {% csrf_token %}
@@ -10,20 +9,12 @@
         <!-- Primera columna -->
         <div class="col-md-6">
             <div class="form-group">
-                <label for="id_username" class="form-label">Username</label>
-                <input type="text" class="form-control" id="id_username" name="username" placeholder="Ingrese un Username" required>
-            </div>
-            <div class="form-group">
-                <label for="id_password" class="form-label">Contraseña</label>
-                <input type="password" class="form-control" id="id_password" name="password" placeholder="Ingrese contraseña" required>
-            </div>
-            <div class="form-group">
                 <label for="id_first_name" class="form-label">Nombres</label>
-                <input type="text" class="form-control" id="id_first_name" name="first_name" placeholder="Nombres" required>
+                <input type="text" class="form-control" id="id_first_name" name="nombre" placeholder="Nombres" required>
             </div>
             <div class="form-group">
                 <label for="id_last_name" class="form-label">Apellidos</label>
-                <input type="text" class="form-control" id="id_last_name" name="last_name" placeholder="Apellidos" required>
+                <input type="text" class="form-control" id="id_last_name" name="apellido" placeholder="Apellidos" required>
             </div>
             <div class="form-group">
                 <label for="id_CI" class="form-label">CI</label>
@@ -53,14 +44,7 @@
             </div>
             <div class="form-group">
                 <label for="id_domicilio" class="form-label">Domicilio</label>
-                <textarea class="form-control" id="id_domicilio" name="domicilio"></textarea>
-            </div>
-            <div class="form-group">
-                <label for="id_imagen_producto" class="form-label">Imagen de Perfil</label>
-                <input type="file" class="form-control" id="id_imagen_producto" name="imagen_perfil">
-                    <p class="mt-2 text">Imagen: 
-                        <img src="{% static '/img/perfil_defecto.jpg' %}" width="250" class="rounded-circle img-fluid" alt="Sin imagen">
-                    </p>
+                <textarea class="form-control" id="id_domicilio" name="direccion"></textarea>
             </div>
         </div>
     </form>

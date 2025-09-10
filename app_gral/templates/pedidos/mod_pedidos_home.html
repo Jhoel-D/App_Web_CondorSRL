@@ -37,7 +37,7 @@
                 <tr>
                     <td>{{ forloop.counter }}</td>
                     <td>{{ pedidos.id_pedido }}</td>
-                    <td>{{ pedidos.id_cliente.first_name }} {{ pedidos.id_cliente.last_name }}</td>
+                    <td>{{ pedidos.id_cliente.nombre }} {{ pedidos.id_cliente.apellido }}</td>
                     <td>
                         <a href="{% url 'ver_productos_pedido' pedidos.id_pedido %}" class="btn btn-success">
                             <i class="bx bx-store icon"></i> Ver Productos

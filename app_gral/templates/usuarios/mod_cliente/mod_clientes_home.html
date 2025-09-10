@@ -39,11 +39,11 @@
                     <td>{{ forloop.counter }}</td>
                     <td>{{ cliente.id }}</td>
                     <td>{{ cliente.CI }}</td>
-                    <td>{{ cliente.first_name }}</td>
-                    <td>{{ cliente.last_name }}</td>
+                    <td>{{ cliente.nombre }}</td>
+                    <td>{{ cliente.apellido }}</td>
                     <td>{{ cliente.email }}</td>
                     <td>{{ cliente.telefono }}</td>
-                    <td>{{ cliente.domicilio}}</td>
+                    <td>{{ cliente.direccion}}</td>
                     <!-- <td>
                         {% if cliente.groups.count > 0 %}
                             {{ cliente.groups.first.name }}
@@ -51,7 +51,7 @@
                             Sin rol
                         {% endif %}
                     </td> -->
-                    <td><p>{{ cliente.fecha_de_registro }}</p></td>
+                    <td><p>{{ cliente.fecha_registro }}</p></td>
                     <td>
                         <div class="d-flex justify-content-center">
                             <a href="{% url 'ver_cliente' cliente.id %}" class="btn btn-info btn-sm me-2">
