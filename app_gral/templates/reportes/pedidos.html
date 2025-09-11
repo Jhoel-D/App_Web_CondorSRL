@@ -1,137 +1,167 @@
 {% extends 'base/base_home.html' %}
+{% load static %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header del Reporte -->
+<div class="container-fluid p-4">
+    <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2><i class="fas fa-shopping-cart text-info me-2"></i>Reporte de Pedidos</h2>
-                    <p class="text-muted">Análisis y seguimiento de pedidos realizados</p>
+                    <h2 class="fw-bold text-primary mb-1">
+                        <i class="fa-solid fa-file-invoice-dollar me-2"></i>
+                        REPORTE DE PEDIDOS
+                    </h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="{% url 'mod_reportes_home' %}">Reportes</a></li>
+                            <li class="breadcrumb-item active">Pedidos</li>
+                        </ol>
+                    </nav>
                 </div>
                 <div>
-                    <button class="btn btn-success me-2" onclick="exportarExcel()">
-                        <i class="fas fa-file-excel me-1"></i>Excel
-                    </button>
-                    <button class="btn btn-danger" onclick="exportarPDF()">
-                        <i class="fas fa-file-pdf me-1"></i>PDF
-                    </button>
+                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}export=excel" 
+                        class="btn btn-success me-2"
+                        onclick="return confirm('¿Deseas descargar el reporte en Excel?')">
+                        <i class="fa-solid fa-file-excel me-1"></i>Excel
+                    </a>
+
+                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}export=pdf" 
+                         class="btn btn-danger"
+                         onclick="return confirm('¿Deseas descargar el reporte en PDF?')">
+                        <i class="fa-solid fa-file-pdf me-1"></i>PDF
+                     </a>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Filtros -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-filter me-2"></i>Filtros de Búsqueda</h5>
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fa-solid fa-filter me-2"></i>Filtros de Búsqueda</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" id="filtrosForm">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Fecha Desde</label>
+                        <input type="date" class="form-control" name="fecha_desde" value="{{ request.GET.fecha_desde }}">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Fecha Hasta</label>
+                        <input type="date" class="form-control" name="fecha_hasta" value="{{ request.GET.fecha_hasta }}">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Cliente</label>
+                        <select class="form-select" name="cliente">
+                            <option value="">Todos los clientes</option>
+                            {% for cliente in clientes %}
+                                <option value="{{ cliente.id }}" {% if request.GET.cliente == cliente.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ cliente.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Estado</label>
+                        <select class="form-select" name="estado">
+                            <option value="">Todos los estados</option>
+                            <option value="COMPLETADO" {% if request.GET.estado == "COMPLETADO" %}selected{% endif %}>Completado</option>
+                            <option value="PENDIENTE" {% if request.GET.estado == "PENDIENTE" %}selected{% endif %}>Pendiente</option>
+                            <option value="CANCELADO" {% if request.GET.estado == "CANCELADO" %}selected{% endif %}>Cancelado</option>
+                        </select>
+                    </div>
+
                 </div>
-                <div class="card-body">
-                    <form method="GET">
-                        <div class="row">
-                            <div class="col-md-2">
-                                <label class="form-label">Fecha Inicio</label>
-                                <input type="date" class="form-control" name="fecha_inicio" value="{{ fecha_inicio }}">
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Fecha Fin</label>
-                                <input type="date" class="form-control" name="fecha_fin" value="{{ fecha_fin }}">
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Estado</label>
-                                <select class="form-select" name="estado">
-                                    <option value="">Todos</option>
-                                    <option value="pendiente">Pendiente</option>
-                                    <option value="procesando">Procesando</option>
-                                    <option value="enviado">Enviado</option>
-                                    <option value="entregado">Entregado</option>
-                                    <option value="cancelado">Cancelado</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Cliente</label>
-                                <input type="text" class="form-control" name="cliente" placeholder="Buscar cliente...">
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Método de Pago</label>
-                                <select class="form-select" name="metodo_pago">
-                                    <option value="">Todos</option>
-                                    <option value="efectivo">Efectivo</option>
-                                    <option value="tarjeta">Tarjeta</option>
-                                    <option value="transferencia">Transferencia</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">&nbsp;</label>
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-search me-1"></i>Buscar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
+                <div class="row">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary me-2 mt-4">
+                            <i class="fa-solid fa-search me-1"></i>Filtrar
+                        </button>
+                        <a href="{% url 'reporte_pedidos' %}" class="btn btn-secondary mt-4">
+                             <i class="fa-solid fa-refresh me-1"></i>Limpiar
+                        </a>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 
-    <!-- Estadísticas de Pedidos -->
+    <!-- Estadísticas resumidas -->
     <div class="row mb-4">
-        <div class="col-md-2">
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="card bg-primary text-white">
-                <div class="card-body text-center">
-                    <i class="fas fa-shopping-cart fa-2x mb-2"></i>
-                    <h4>{{ total_pedidos }}</h4>
-                    <p class="mb-0">Total Pedidos</p>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="fw-bold">{{ total_pedidos|default:"0" }}</h4>
+                            <p class="mb-0">Total Pedidos</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fa-solid fa-list-check fa-2x"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-2">
-            <div class="card bg-warning text-white">
-                <div class="card-body text-center">
-                    <i class="fas fa-clock fa-2x mb-2"></i>
-                    <h4>{{ pedidos_pendientes }}</h4>
-                    <p class="mb-0">Pendientes</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card bg-info text-white">
-                <div class="card-body text-center">
-                    <i class="fas fa-cog fa-2x mb-2"></i>
-                    <h4>{{ pedidos_procesando }}</h4>
-                    <p class="mb-0">Procesando</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card bg-secondary text-white">
-                <div class="card-body text-center">
-                    <i class="fas fa-truck fa-2x mb-2"></i>
-                    <h4>{{ pedidos_enviados }}</h4>
-                    <p class="mb-0">Enviados</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="card bg-success text-white">
-                <div class="card-body text-center">
-                    <i class="fas fa-check-circle fa-2x mb-2"></i>
-                    <h4>{{ pedidos_entregados }}</h4>
-                    <p class="mb-0">Entregados</p>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="fw-bold">{{ total_monto|default:"0"|floatformat:0 }} Bs</h4>
+                            <p class="mb-0">Monto Total Pagado</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fa-solid fa-dollar-sign fa-2x"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-2">
+        <div class="col-lg-2 col-md-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="fw-bold">{{ total_completados|default:"0" }}</h4>
+                            <p class="mb-0">Completados</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fa-solid fa-check fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-6 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="fw-bold">{{ total_pendientes|default:"0" }}</h4>
+                            <p class="mb-0">Pendientes</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fa-solid fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-6 mb-3">
             <div class="card bg-danger text-white">
-                <div class="card-body text-center">
-                    <i class="fas fa-times-circle fa-2x mb-2"></i>
-                    <h4>{{ pedidos_cancelados }}</h4>
-                    <p class="mb-0">Cancelados</p>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="fw-bold">{{ total_cancelados|default:"0" }}</h4>
+                            <p class="mb-0">Cancelados</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fa-solid fa-xmark fa-2x"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -139,192 +169,144 @@
 
     <!-- Gráficos -->
     <div class="row mb-4">
-        <div class="col-md-6">
+        <div class="col-lg-8 mb-4">
             <div class="card">
                 <div class="card-header">
-                    <h5><i class="fas fa-chart-line me-2"></i>Pedidos por Día</h5>
+                    <h5 class="mb-0">Tendencia de Pedidos</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="pedidosDiaChart" height="300"></canvas>
+                    <canvas id="pedidosChart" height="100"></canvas>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-lg-4 mb-4">
             <div class="card">
                 <div class="card-header">
-                    <h5><i class="fas fa-chart-pie me-2"></i>Estados de Pedidos</h5>
+                    <h5 class="mb-0">Top Productos Pedidos</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="estadosChart" height="300"></canvas>
+                    <canvas id="productosChart" height="200"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Tabla de Pedidos -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-table me-2"></i>Listado de Pedidos</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th><i class="fas fa-hashtag me-1"></i>ID</th>
-                                    <th><i class="fas fa-calendar me-1"></i>Fecha</th>
-                                    <th><i class="fas fa-user me-1"></i>Cliente</th>
-                                    <th><i class="fas fa-list me-1"></i>Productos</th>
-                                    <th><i class="fas fa-dollar-sign me-1"></i>Total</th>
-                                    <th><i class="fas fa-credit-card me-1"></i>Método Pago</th>
-                                    <th><i class="fas fa-info-circle me-1"></i>Estado</th>
-                                    <th><i class="fas fa-truck me-1"></i>Envío</th>
-                                    <th><i class="fas fa-cogs me-1"></i>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for pedido in pedidos %}
-                                <tr>
-                                    <td>#{{ pedido.id }}</td>
-                                    <td>{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</td>
-                                    <td>{{ pedido.cliente.nombre }} {{ pedido.cliente.apellido }}</td>
-                                    <td>{{ pedido.total_productos }} items</td>
-                                    <td>${{ pedido.total|floatformat:2 }}</td>
-                                    <td>{{ pedido.get_metodo_pago_display }}</td>
-                                    <td>
-                                        {% if pedido.estado == 'pendiente' %}
-                                            <span class="badge bg-warning">Pendiente</span>
-                                        {% elif pedido.estado == 'procesando' %}
-                                            <span class="badge bg-info">Procesando</span>
-                                        {% elif pedido.estado == 'enviado' %}
-                                            <span class="badge bg-secondary">Enviado</span>
-                                        {% elif pedido.estado == 'entregado' %}
-                                            <span class="badge bg-success">Entregado</span>
-                                        {% elif pedido.estado == 'cancelado' %}
-                                            <span class="badge bg-danger">Cancelado</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if pedido.direccion_envio %}
-                                            <i class="fas fa-map-marker-alt text-success" title="{{ pedido.direccion_envio }}"></i>
-                                        {% else %}
-                                            <i class="fas fa-store text-info" title="Retiro en tienda"></i>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary" onclick="verDetalle({{ pedido.id }})">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-success" onclick="imprimirPedido({{ pedido.id }})">
-                                            <i class="fas fa-print"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="9" class="text-center">No hay pedidos registrados</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Paginación -->
-                    {% if pedidos.has_other_pages %}
-                    <nav aria-label="Paginación">
-                        <ul class="pagination justify-content-center">
-                            {% if pedidos.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=">Anterior</a>
-                                </li>
-                            {% endif %}
-                            
-                            {% for num in pedidos.paginator.page_range %}
-                                {% if pedidos.number == num %}
-                                    <li class="page-item active">
-                                        <span class="page-link">{{ num }}</span>
-                                    </li>
+    <!-- Tabla de pedidos -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Detalle de Pedidos</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Vendedor</th>
+                            <th>Beneficiario</th>
+                            <th>Monto Pagado</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in pedidos %}
+                        <tr>
+                            <td><strong>#{{ pedido.id_pedido }}</strong></td>
+                            <td>{{ pedido.fecha_registro|date:"d/m/Y H:i" }}</td>
+                            <td>{{ pedido.id_cliente.nombre }}</td>
+                            <td>{{ pedido.id_vendedor.username }}</td>
+                            <td>{{ pedido.beneficiario }}</td>
+                            <td>{{ pedido.monto_pagado|floatformat:0 }} Bs</td>
+                            <td>{{ pedido.costo_total|floatformat:0 }} Bs</td>
+                            <td>
+                                {% if pedido.estado == 'COMPLETADO' %}
+                                    <span class="badge bg-success">Completado</span>
+                                {% elif pedido.estado == 'PENDIENTE' %}
+                                    <span class="badge bg-warning">Pendiente</span>
                                 {% else %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page=">{{ num }}</a>
-                                    </li>
+                                    <span class="badge bg-danger">Cancelado</span>
                                 {% endif %}
-                            {% endfor %}
-                            
-                            {% if pedidos.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=">Siguiente</a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                    {% endif %}
-                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <i class="fa-solid fa-inbox fa-2x text-muted mb-2"></i>
+                                <p class="text-muted mb-0">No se encontraron pedidos con los filtros aplicados</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
+        {% if pedidos.has_other_pages %}
+        <div class="card-footer">
+            <nav aria-label="Paginación de pedidos">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if pedidos.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ pedidos.previous_page_number }}">Anterior</a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in pedidos.paginator.page_range %}
+                        {% if pedidos.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if pedidos.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ pedidos.next_page_number }}">Siguiente</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
     </div>
 </div>
 
+<!-- Scripts para gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Gráfico de Pedidos por Día
-const ctxPedidosDia = document.getElementById('pedidosDiaChart').getContext('2d');
-new Chart(ctxPedidosDia, {
+const ctx1 = document.getElementById('pedidosChart').getContext('2d');
+const pedidosChart = new Chart(ctx1, {
     type: 'line',
     data: {
-        labels: {{ fechas_labels|safe }},
+        labels: {{ fechas_grafico|safe }},
         datasets: [{
             label: 'Pedidos',
-            data: {{ pedidos_data|safe }},
-            borderColor: '#007bff',
-            backgroundColor: 'rgba(0, 123, 255, 0.1)',
-            fill: true,
-            tension: 0.4
+            data: {{ pedidos_grafico|safe }},
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            tension: 0.1
         }]
     },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
+    options: { responsive: true, maintainAspectRatio: false }
 });
 
-// Gráfico de Estados
-const ctxEstados = document.getElementById('estadosChart').getContext('2d');
-new Chart(ctxEstados, {
+const ctx2 = document.getElementById('productosChart').getContext('2d');
+const productosChart = new Chart(ctx2, {
     type: 'doughnut',
     data: {
-        labels: ['Pendiente', 'Procesando', 'Enviado', 'Entregado', 'Cancelado'],
+        labels: {{ productos_labels|safe }},
         datasets: [{
-            data: [{{ pedidos_pendientes }}, {{ pedidos_procesando }}, {{ pedidos_enviados }}, {{ pedidos_entregados }}, {{ pedidos_cancelados }}],
-            backgroundColor: ['#ffc107', '#17a2b8', '#6c757d', '#28a745', '#dc3545']
+            data: {{ productos_data|safe }},
+            backgroundColor: ['#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF']
         }]
     },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false
-    }
+    options: { responsive: true, maintainAspectRatio: false }
 });
-
-function verDetalle(pedidoId) {
-    window.location.href = `/pedidos/${pedidoId}/detalle/`;
-}
-
-function imprimirPedido(pedidoId) {
-    window.open(`/pedidos/${pedidoId}/imprimir/`, '_blank');
-}
-
-function exportarExcel() {
-    window.location.href = "";
-}
-
-function exportarPDF() {
-    window.location.href = "";
-}
 </script>
 {% endblock %}

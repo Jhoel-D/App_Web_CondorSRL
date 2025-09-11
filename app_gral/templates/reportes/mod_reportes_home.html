@@ -15,7 +15,7 @@
                     <h2 class="text text-center fw-bold mb-4">Sistema de reportes y análisis - CONDOR S.R.L.</h2>
                 </div>
                 <div class="text-end">
-                    <small class="text-muted">Última actualización: {{ fecha_actual|date:"d/m/Y H:i" }}</small>
+                    <small class="text muted">Última actualización: {{ fecha_actual|date:"d/m/Y H:i" }}</small>
                 </div>
             </div>
         </div>
@@ -34,7 +34,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="card-title text-muted mb-1">Ventas del Mes</h6>
-                            <h4 class="mb-0 fw-bold">${{ total_ventas_mes|floatformat:0 }}</h4>
+                            <h4 class="mb-0 fw-bold">{{ total_ventas_mes|floatformat:0 }} Bs</h4>
                         </div>
                     </div>
                 </div>
@@ -151,12 +151,12 @@
             <div class="card border-0 shadow-sm h-100 hover-card">
                 <div class="card-body text-center p-4">
                     <div class="mb-3">
-                        <i class="fa-solid fa-dollar-sign text-info" style="font-size: 3rem;"></i>
+                        <i class="fa-solid fa-chart-pie text-secondary" style="font-size: 3rem;"></i>
                     </div>
-                    <h5 class="card-title fw-bold">Reporte Financiero</h5>
-                    <p class="card-text text-muted">Análisis de ingresos, gastos, rentabilidad y flujo de caja.</p>
-                    <a href="{% url 'reporte_financiero' %}" class="btn btn-info">
-                        <i class="fa-solid fa-eye me-2"></i>Ver Reporte
+                    <h5 class="card-title fw-bold">Dashboard Ejecutivo</h5>
+                    <p class="card-text text-muted">Resumen ejecutivo con KPIs principales y métricas de rendimiento.</p>
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                        <i class="fa-solid fa-eye me-2"></i>Ver Dashboard
                     </a>
                 </div>
             </div>
@@ -181,12 +181,13 @@
             <div class="card border-0 shadow-sm h-100 hover-card">
                 <div class="card-body text-center p-4">
                     <div class="mb-3">
-                        <i class="fa-solid fa-chart-pie text-secondary" style="font-size: 3rem;"></i>
+                        <i class="fa-solid fa-dollar-sign text-info" style="font-size: 3rem;"></i>
                     </div>
-                    <h5 class="card-title fw-bold">Dashboard Ejecutivo</h5>
-                    <p class="card-text text-muted">Resumen ejecutivo con KPIs principales y métricas de rendimiento.</p>
-                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
-                        <i class="fa-solid fa-eye me-2"></i>Ver Dashboard
+                    <h5 class="card-title fw-bold">Reporte Financiero</h5>
+                    <p class="card-text text-muted">Análisis de ingresos, gastos, rentabilidad y flujo de caja.</p>
+                    <!-- mensaje de reporte financiero proximamente -->
+                    <a href="javascript:void(0);" class="btn btn-info disabled" title="Próximamente">
+                        <i class="fa-solid fa-eye me-2"></i>PRÓXIMAMENTE
                     </a>
                 </div>
             </div>

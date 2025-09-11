@@ -60,26 +60,12 @@
         </tbody>
     </table>
 </div>
-    <!-- Dirección de Envío -->
-    <!-- <div class="card mt-4">
-        <div class="card-header bg-info text-white">
-            <h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Dirección de Envío</h5>
-        </div>
-        <div class="card-body">
-            <p><strong>Dirección:</strong> {{ venta.direccion_envio }}</p>
-            <p><strong>Nombre:</strong> {{ venta.id_cliente.first_name }} {{ venta.id_cliente.last_name }}</p>
-            <p><strong>País:</strong> {{ venta.pais }}</p>
-            <p><strong>Departamento:</strong> {{ venta.departamento }}</p>
-            <p><strong>Zona:</strong> {{ venta.zona }}</p>
-            <p><strong>Método de Envío:</strong> {{ venta.metodo_envio }}</p>
-        </div>
-    </div> -->
 
     <!-- Botón para regresar -->
     <div class="mt-4 text-center">
-        <a href="{% url 'mod_ventas_home' %}" class="btn btn-dark">
+        <button class="btn btn-dark" onclick="window.history.back();">
             <i class="fas fa-arrow-left"></i> Regresar
-        </a>
+        </button>
     </div>
 </div>
 {% endblock %}

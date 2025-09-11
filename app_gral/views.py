@@ -672,7 +672,6 @@ def mod_pedidos_home(request):
         'search_term': search_term
     })
     
-    
 def ver_productos_pedido(request, pedido_id):
     # Obtener la pedido y los productos relacionados
     pedido = get_object_or_404(Pedidos, id_pedido=pedido_id)
@@ -787,17 +786,557 @@ def crear_pedido(request):
         return render(request, 'pedidos/crear_pedido.html', {'form': venta_form, 'productos': productos})
     
 #MOD REPORTES
+from django.utils.timezone import now, localtime
+from django.db.models import Sum, Count
+from datetime import datetime
+
 @login_required
 def mod_reportes_home(request):
-    return render(request, 'reportes/mod_reportes_home.html')
+    # Fecha y hora actual en la zona horaria local
+    fecha_actual = localtime(now())
+
+    # Determinar el primer y último día del mes actual
+    primer_dia_mes = fecha_actual.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    if fecha_actual.month == 12:
+        primer_dia_mes_siguiente = fecha_actual.replace(year=fecha_actual.year + 1, month=1, day=1)
+    else:
+        primer_dia_mes_siguiente = fecha_actual.replace(month=fecha_actual.month + 1, day=1)
+
+    # Total ventas del mes usando rango de fechas
+    total_ventas_mes = Ventas.objects.filter(
+        fecha_registro__gte=primer_dia_mes,
+        fecha_registro__lt=primer_dia_mes_siguiente
+    ).aggregate(total=Sum('costo_total'))['total'] or 0
+
+    # Total clientes
+    total_clientes = Cliente.objects.count()
+
+    # Total productos
+    total_productos = ProductoInventario.objects.count()
+
+    # Pedidos pendientes
+    pedidos_pendientes = Pedidos.objects.filter(estado="Pendiente").count()
+
+    context = {
+        'fecha_actual': fecha_actual,
+        'total_ventas_mes': total_ventas_mes,
+        'total_clientes': total_clientes,
+        'total_productos': total_productos,
+        'pedidos_pendientes': pedidos_pendientes,
+    }
+
+    return render(request, 'reportes/mod_reportes_home.html', context)
+
+
+
+@login_required
 def reporte_clientes(request):
-    return render(request, 'reportes/clientes.html')
+    clientes_qs = Cliente.objects.all()
+    ventas_qs = Ventas.objects.all()
 
+    # --- Filtros GET ---
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+    cliente_id = request.GET.get('cliente')
+    estado = request.GET.get('estado')
+    export_format = request.GET.get('export')
+
+    if fecha_desde:
+        try:
+            fecha_desde_dt = datetime.strptime(fecha_desde, "%Y-%m-%d")
+            ventas_qs = ventas_qs.filter(fecha_registro__gte=fecha_desde_dt)
+        except ValueError:
+            pass
+    if fecha_hasta:
+        try:
+            fecha_hasta_dt = datetime.strptime(fecha_hasta, "%Y-%m-%d")
+            ventas_qs = ventas_qs.filter(fecha_registro__lte=fecha_hasta_dt)
+        except ValueError:
+            pass
+    if cliente_id:
+        ventas_qs = ventas_qs.filter(id_cliente_id=cliente_id)
+    if estado:
+        ventas_qs = ventas_qs.filter(estado__iexact=estado)
+
+    # --- Agrupamos ventas por cliente ---
+    clientes_data = (
+        ventas_qs.values("id_cliente__id", "id_cliente__nombre", "id_cliente__apellido")
+        .annotate(
+            total_ventas=Count("id_venta"),
+            total_ingresos=Sum("costo_total")
+        )
+        .order_by("-total_ingresos")
+    )
+
+    # --- Exportar a Excel ---
+    if export_format == "excel":
+        import pandas as pd
+        data = []
+        for c in clientes_data:
+            data.append({
+                "Cliente": f"{c['id_cliente__nombre']} {c['id_cliente__apellido']}",
+                "Ventas Realizadas": c["total_ventas"],
+                "Total Comprado (Bs)": float(c["total_ingresos"] or 0),
+            })
+        df = pd.DataFrame(data)
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name="Clientes")
+            ws = writer.sheets['Clientes']
+            thin_border = Border(
+                left=Side(style='thin'),
+                right=Side(style='thin'),
+                top=Side(style='thin'),
+                bottom=Side(style='thin'))
+            for row in ws.iter_rows(min_row=1, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
+                for cell in row:
+                    cell.border = thin_border
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
+            for cell in ws[1]:
+                cell.fill = PatternFill("solid", fgColor="BDD7EE")
+                cell.font = Font(bold=True)
+        output.seek(0)
+        response = HttpResponse(
+            output,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=Reporte_Clientes.xlsx'
+        return response
+
+    # --- Exportar a PDF ---
+    if export_format == "pdf":
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+        styles = getSampleStyleSheet()
+        title = Paragraph("Reporte de Clientes", styles['Title'])
+        elements.append(title)
+        elements.append(Spacer(1, 12))
+
+        data = [["Cliente", "Ventas Realizadas", "Total Comprado (Bs)"]]
+        for c in clientes_data:
+            data.append([
+                f"{c['id_cliente__nombre']} {c['id_cliente__apellido']}",
+                str(c["total_ventas"]),
+                f"{c['total_ingresos'] or 0:.2f}"
+            ])
+        table = Table(data, repeatRows=1, hAlign='LEFT')
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#4F81BD")),
+            ('TEXTCOLOR',(0,0),(-1,0),colors.whitesmoke),
+            ('ALIGN',(0,0),(-1,-1),'CENTER'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,0), 12),
+            ('FONTSIZE', (0,1), (-1,-1), 10),
+            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.lightgrey])
+        ]))
+        elements.append(table)
+        doc.build(elements)
+        pdf = buffer.getvalue()
+        buffer.close()
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="Reporte_Clientes.pdf"'
+        response.write(pdf)
+        return response
+
+    # --- Estadísticas ---
+    total_clientes = clientes_data.count()
+    cliente_top = clientes_data.first() if clientes_data else None
+
+    context = {
+        "clientes": clientes_qs,
+        "clientes_data": clientes_data,
+        "total_clientes": total_clientes,
+        "cliente_top": cliente_top,
+    }
+    return render(request, 'reportes/clientes.html', context)
+
+
+from django.http import HttpResponse
+#Para Excel
+import openpyxl
+from openpyxl.styles import Border, Side, PatternFill, Alignment, Font
+
+from io import BytesIO
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+
+
+@login_required
 def reporte_ventas(request):
-    return render(request, 'reportes/ventas.html')
+    ventas_qs = Ventas.objects.all()
+    clientes = Cliente.objects.all()
 
+    # Filtros GET
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+    cliente_id = request.GET.get('cliente')
+    estado = request.GET.get('estado')
+    export_format = request.GET.get('export')  # 'excel' o 'pdf'
+
+    if fecha_desde:
+        try:
+            fecha_desde_dt = datetime.strptime(fecha_desde, "%Y-%m-%d")
+            ventas_qs = ventas_qs.filter(fecha_registro__gte=fecha_desde_dt)
+        except ValueError:
+            pass
+
+    if fecha_hasta:
+        try:
+            # Añadimos 1 día al final para incluir todo el día hasta las 23:59
+            fecha_hasta_dt = datetime.strptime(fecha_hasta, "%Y-%m-%d")
+            ventas_qs = ventas_qs.filter(fecha_registro__lte=fecha_hasta_dt)
+        except ValueError:
+            pass
+
+    if cliente_id:
+        ventas_qs = ventas_qs.filter(cliente_id=cliente_id)
+
+    if estado:
+        ventas_qs = ventas_qs.filter(estado__iexact=estado)
+    # --- Filtrado igual que en reporte_ventas ---
+    ventas_qs = Ventas.objects.all()
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+    cliente_id = request.GET.get('cliente')
+    estado = request.GET.get('estado')
+
+    if fecha_desde:
+        try:
+            fecha_desde_dt = datetime.strptime(fecha_desde, "%Y-%m-%d")
+            ventas_qs = ventas_qs.filter(fecha_registro__gte=fecha_desde_dt)
+        except ValueError:
+            pass
+    if fecha_hasta:
+        try:
+            fecha_hasta_dt = datetime.strptime(fecha_hasta, "%Y-%m-%d")
+            ventas_qs = ventas_qs.filter(fecha_registro__lte=fecha_hasta_dt)
+        except ValueError:
+            pass
+    if cliente_id:
+        ventas_qs = ventas_qs.filter(cliente_id=cliente_id)
+    if estado:
+        ventas_qs = ventas_qs.filter(estado__iexact=estado)
+
+    # --- Exportar a Excel ---
+    
+    if export_format == "excel":
+        import pandas as pd
+        data = []
+        for venta in ventas_qs:
+            data.append({
+                "ID": venta.id_venta,
+                "Fecha": venta.fecha_registro.strftime("%d/%m/%Y %H:%M"),
+                "Cliente": venta.id_cliente.nombre,
+                "Total Bs": float(venta.costo_total),
+                "Estado": venta.estado,
+            })
+        df = pd.DataFrame(data)
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name="Ventas")
+            # Bordes: aplicar formato de tabla
+            ws = writer.sheets['Ventas']
+            thin_border = Border(
+                left=Side(style='thin'),
+                right=Side(style='thin'),
+                top=Side(style='thin'),
+                bottom=Side(style='thin'))
+            
+            # Aplicar borde y alineación a todas las celdas
+            for row in ws.iter_rows(min_row=1, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
+                for cell in row:
+                    cell.border = thin_border
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
+            # Opcional: fondo para encabezado
+            for cell in ws[1]:
+                    cell.fill = PatternFill("solid", fgColor="BDD7EE")
+                    cell.font = Font(bold=True)
+        output.seek(0)
+        response = HttpResponse(
+            output,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=Reporte_Ventas.xlsx'
+        return response
+
+    # --- Exportar a PDF con tabla y bordes ---
+    if export_format == "pdf":
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+
+        styles = getSampleStyleSheet()
+        title = Paragraph("Reporte de Ventas", styles['Title'])
+        elements.append(title)
+        elements.append(Spacer(1, 12))
+
+        # Datos de la tabla
+        data = [["ID", "Fecha", "Cliente", "Total Bs", "Estado"]]
+        for venta in ventas_qs:
+            data.append([
+                str(venta.id_venta),
+                venta.fecha_registro.strftime("%d/%m/%Y %H:%M"),
+                venta.id_cliente.nombre,
+                f"{venta.costo_total:.2f}",
+                venta.estado
+            ])
+
+        # Crear tabla con estilo
+        table = Table(data, repeatRows=1, hAlign='LEFT')
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#4F81BD")),
+            ('TEXTCOLOR',(0,0),(-1,0),colors.whitesmoke),
+            ('ALIGN',(0,0),(-1,-1),'CENTER'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTNAME', (0,1), (-1,-1), 'Helvetica'),
+            ('FONTSIZE', (0,0), (-1,0), 12),
+            ('FONTSIZE', (0,1), (-1,-1), 10),
+            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.lightgrey])
+        ]))
+
+        elements.append(table)
+        doc.build(elements)
+
+        pdf = buffer.getvalue()
+        buffer.close()
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="Reporte_Ventas.pdf"'
+        response.write(pdf)
+        return response
+    # Estadísticas
+    total_ventas = ventas_qs.count()
+    total_ingresos = ventas_qs.aggregate(total=Sum('costo_total'))['total'] or 0
+    promedio_venta = total_ingresos / total_ventas if total_ventas > 0 else 0
+    productos_vendidos = (
+        ProductosVenta.objects.filter(venta__in=ventas_qs)
+        .aggregate(total=Sum("cantidad"))["total"] or 0
+    )
+    
+    # --- Gráfico de tendencia de ventas ---
+    ventas_por_fecha = (
+        ventas_qs.values("fecha_registro__date")
+        .annotate(total=Sum("costo_total"))
+        .order_by("fecha_registro__date")
+    )
+    fechas_grafico = [v["fecha_registro__date"].strftime("%d/%m/%Y") for v in ventas_por_fecha if v["fecha_registro__date"]]
+    ventas_grafico = [float(v["total"] or 0) for v in ventas_por_fecha]
+    
+     # --- Top productos más vendidos ---
+    productos_qs = (
+        ProductosVenta.objects.filter(venta__in=ventas_qs)
+        .values("producto__nombre")
+        .annotate(total_vendido=Sum("cantidad"))
+        .order_by("-total_vendido")[:5]
+    )
+    productos_labels = [p["producto__nombre"] for p in productos_qs]
+    productos_data = [int(p["total_vendido"] or 0) for p in productos_qs]
+    # Paginación
+    paginator = Paginator(ventas_qs.order_by('-fecha_registro'), 100)
+    page_number = request.GET.get('page')
+    ventas_page = paginator.get_page(page_number)
+
+    context = {
+        "ventas": ventas_page,
+        "clientes": clientes,
+        "total_ventas": total_ventas,
+        "total_ingresos": total_ingresos,
+        "promedio_venta": promedio_venta,
+        "productos_vendidos": productos_vendidos,
+        "fechas_grafico": fechas_grafico,
+        "ventas_grafico": ventas_grafico,
+        "productos_labels": productos_labels,
+        "productos_data": productos_data,
+    }
+    return render(request, 'reportes/ventas.html', context)
+
+from django.shortcuts import render
+from django.core.paginator import Paginator
+from django.http import HttpResponse
+from io import BytesIO
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Side, PatternFill, Font
+from .models import ProductoInventario, Categoria
+
+@login_required
 def reporte_productos(request):
-    return render(request, 'reportes/productos.html')
+    productos_qs = ProductoInventario.objects.select_related('id_categoria').all()
+
+    # Filtros GET
+    categoria_id = request.GET.get('categoria')
+    estado_stock = request.GET.get('estado_stock')
+    producto_buscar = request.GET.get('producto')
+    export_format = request.GET.get('export')  # 'excel' o 'pdf'
+
+    if categoria_id:
+        productos_qs = productos_qs.filter(id_categoria_id=categoria_id)
+    if producto_buscar:
+        productos_qs = productos_qs.filter(nombre__icontains=producto_buscar)
+
+    # Calcular valor_total y estado_stock sin modificar el modelo
+    productos_list = []
+    for p in productos_qs:
+        valor_total = p.precio_unitario * p.cantidad_stock
+        if p.cantidad_stock == 0:
+            estado = "Agotado"
+        elif p.cantidad_stock <= 5:
+            estado = "Bajo"
+        elif p.cantidad_stock <= 20:
+            estado = "Medio"
+        else:
+            estado = "Alto"
+        productos_list.append({
+            "id": p.id_producto,
+            "nombre": p.nombre,
+            "categoria": p.id_categoria.nombre,
+            "stock": p.cantidad_stock,
+            "precio_unitario": p.precio_unitario,
+            "valor_total": valor_total,
+            "estado": estado,
+            "fecha_actualizacion": p.fecha_registro
+        })
+
+    # Filtrar por estado_stock si aplica
+    if estado_stock:
+        productos_list = [p for p in productos_list if p['estado'].lower() == estado_stock.lower()]
+
+    # --- Exportar a Excel ---
+    if export_format == "excel":
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Productos"
+
+        # Encabezados
+        headers = ["ID", "Producto", "Categoría", "Stock", "Precio Unitario", "Valor Total", "Estado", "Última Actualización"]
+        ws.append(headers)
+
+        for p in productos_list:
+            ws.append([
+                p["id"],
+                p["nombre"],
+                p["categoria"],
+                p["stock"],
+                float(p["precio_unitario"]),
+                float(p["valor_total"]),
+                p["estado"],
+                p["fecha_actualizacion"].strftime("%d/%m/%Y %H:%M")
+            ])
+
+        # Formato de tabla
+        thin_border = Border(left=Side(style='thin'),
+                             right=Side(style='thin'),
+                             top=Side(style='thin'),
+                             bottom=Side(style='thin'))
+        for row in ws.iter_rows(min_row=1, max_row=ws.max_row, min_col=1, max_col=len(headers)):
+            for cell in row:
+                cell.border = thin_border
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+        for cell in ws[1]:
+            cell.fill = PatternFill("solid", fgColor="BDD7EE")
+            cell.font = Font(bold=True)
+
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+        response = HttpResponse(
+            output,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=Reporte_Productos.xlsx'
+        return response
+
+    # --- Exportar a PDF ---
+    if export_format == "pdf":
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+
+        styles = getSampleStyleSheet()
+        title = Paragraph("Reporte de Inventario", styles['Title'])
+        elements.append(title)
+        elements.append(Spacer(1, 12))
+
+        data = [["ID", "Producto", "Categoría", "Stock", "Precio ud.", "Valor Total", "Estado", "Registro"]]
+        for p in productos_list:
+            data.append([
+                str(p["id"]),
+                p["nombre"],
+                p["categoria"],
+                str(p["stock"]),
+                f"{p['precio_unitario']:.2f}",
+                f"{p['valor_total']:.2f}",
+                p["estado"],
+                p["fecha_actualizacion"].strftime("%d/%m/%Y %H:%M")
+            ])
+
+        table = Table(data, repeatRows=1, hAlign='LEFT')
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#4F81BD")),
+            ('TEXTCOLOR',(0,0),(-1,0),colors.whitesmoke),
+            ('ALIGN',(0,0),(-1,-1),'CENTER'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTNAME', (0,1), (-1,-1), 'Helvetica'),
+            ('FONTSIZE', (0,0), (-1,0), 12),
+            ('FONTSIZE', (0,1), (-1,-1), 10),
+            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.lightgrey])
+        ]))
+
+        elements.append(table)
+        doc.build(elements)
+        pdf = buffer.getvalue()
+        buffer.close()
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="Reporte_Productos.pdf"'
+        response.write(pdf)
+        return response
+
+    # Estadísticas
+    total_productos = len(productos_list)
+    valor_inventario = sum([p["valor_total"] for p in productos_list])
+    productos_bajo_stock = sum([1 for p in productos_list if p["estado"] == "Bajo"])
+    productos_agotados = sum([1 for p in productos_list if p["estado"] == "Agotado"])
+
+    # Datos para gráficos
+    categorias = Categoria.objects.all()
+    categorias_labels = [c.nombre for c in categorias]
+    categorias_data = [len([p for p in productos_list if p["categoria"] == c.nombre]) for c in categorias]
+
+    stock_normal = len([p for p in productos_list if p["estado"] in ["Alto", "Medio"]])
+    stock_bajo = len([p for p in productos_list if p["estado"] == "Bajo"])
+    stock_agotado = len([p for p in productos_list if p["estado"] == "Agotado"])
+
+    # Paginación
+    paginator = Paginator(productos_list, 10)
+    page_number = request.GET.get('page')
+    productos_page = paginator.get_page(page_number)
+
+    context = {
+        "productos": productos_page,
+        "categorias": categorias,
+        "total_productos": total_productos,
+        "valor_inventario": valor_inventario,
+        "productos_bajo_stock": productos_bajo_stock,
+        "productos_agotados": productos_agotados,
+        "categorias_labels": categorias_labels,
+        "categorias_data": categorias_data,
+        "stock_normal": stock_normal,
+        "stock_bajo": stock_bajo,
+        "stock_agotado": stock_agotado,
+        "request": request
+    }
+
+    return render(request, "reportes/productos.html", context)
+
 
 def reporte_financiero(request):
     return render(request, 'reportes/financiero.html')
@@ -805,5 +1344,186 @@ def reporte_financiero(request):
 def dashboard(request):
     return render(request, 'reportes/dashboard.html')
 
+# views.py
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db.models import Sum
+from io import BytesIO
+from datetime import datetime
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Side, PatternFill, Font
+
+from .models import Pedidos, ProductosPedido, Cliente, ProductoInventario, Usuario
+
+@login_required
 def reporte_pedidos(request):
-    return render(request, 'reportes/pedidos.html')
+    pedidos_qs = Pedidos.objects.all()
+    clientes = Cliente.objects.all()
+    vendedores = Usuario.objects.all()
+
+    # Filtros GET
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+    cliente_id = request.GET.get('cliente')
+    vendedor_id = request.GET.get('vendedor')
+    estado = request.GET.get('estado')
+    export_format = request.GET.get('export')  # 'excel' o 'pdf'
+
+    if fecha_desde:
+        try:
+            fecha_desde_dt = datetime.strptime(fecha_desde, "%Y-%m-%d")
+            pedidos_qs = pedidos_qs.filter(fecha_registro__gte=fecha_desde_dt)
+        except ValueError:
+            pass
+    if fecha_hasta:
+        try:
+            fecha_hasta_dt = datetime.strptime(fecha_hasta, "%Y-%m-%d")
+            pedidos_qs = pedidos_qs.filter(fecha_registro__lte=fecha_hasta_dt)
+        except ValueError:
+            pass
+    if cliente_id:
+        pedidos_qs = pedidos_qs.filter(id_cliente_id=cliente_id)
+    if vendedor_id:
+        pedidos_qs = pedidos_qs.filter(id_vendedor_id=vendedor_id)
+    if estado:
+        pedidos_qs = pedidos_qs.filter(estado__iexact=estado)
+
+    # --- Exportar a Excel ---
+    if export_format == "excel":
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Pedidos"
+        # Encabezado
+        headers = ["ID Pedido", "Fecha", "Cliente", "Vendedor", "Beneficiario", "Monto Pagado", "Total", "Estado"]
+        ws.append(headers)
+
+        # Datos
+        for pedido in pedidos_qs:
+            ws.append([
+                pedido.id_pedido,
+                pedido.fecha_registro.strftime("%d/%m/%Y %H:%M"),
+                pedido.id_cliente.nombre,
+                pedido.id_vendedor.username,
+                pedido.beneficiario,
+                float(pedido.monto_pagado),
+                float(pedido.costo_total),
+                pedido.estado,
+            ])
+
+        # Formato de tabla
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        for row in ws.iter_rows(min_row=1, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
+            for cell in row:
+                cell.border = thin_border
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+        # Fondo encabezado
+        for cell in ws[1]:
+            cell.fill = PatternFill("solid", fgColor="BDD7EE")
+            cell.font = Font(bold=True)
+
+        # Respuesta
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+        response = HttpResponse(
+            output,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=Reporte_Pedidos.xlsx'
+        return response
+
+    # --- Exportar a PDF ---
+    if export_format == "pdf":
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+
+        styles = getSampleStyleSheet()
+        title = Paragraph("Reporte de Pedidos", styles['Title'])
+        elements.append(title)
+        elements.append(Spacer(1, 12))
+
+        data = [["ID Pedido", "Fecha", "Cliente", "Vendedor", "Beneficiario", "Monto Pagado", "Total", "Estado"]]
+        for pedido in pedidos_qs:
+            data.append([
+                str(pedido.id_pedido),
+                pedido.fecha_registro.strftime("%d/%m/%Y %H:%M"),
+                pedido.id_cliente.nombre,
+                pedido.id_vendedor.username,
+                pedido.beneficiario,
+                f"{pedido.monto_pagado:.2f}",
+                f"{pedido.costo_total:.2f}",
+                pedido.estado
+            ])
+
+        table = Table(data, repeatRows=1, hAlign='LEFT')
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#4F81BD")),
+            ('TEXTCOLOR',(0,0),(-1,0),colors.whitesmoke),
+            ('ALIGN',(0,0),(-1,-1),'CENTER'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTNAME', (0,1), (-1,-1), 'Helvetica'),
+            ('FONTSIZE', (0,0), (-1,0), 12),
+            ('FONTSIZE', (0,1), (-1,-1), 10),
+            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.lightgrey])
+        ]))
+        elements.append(table)
+        doc.build(elements)
+
+        pdf = buffer.getvalue()
+        buffer.close()
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="Reporte_Pedidos.pdf"'
+        response.write(pdf)
+        return response
+
+    # --- Estadísticas ---
+    total_pedidos = pedidos_qs.count()
+    total_monto = pedidos_qs.aggregate(total=Sum('monto_pagado'))['total'] or 0
+    total_completados = pedidos_qs.filter(estado='COMPLETADO').count()
+    total_pendientes = pedidos_qs.filter(estado='PENDIENTE').count()
+    total_cancelados = pedidos_qs.filter(estado='CANCELADO').count()
+
+    # Gráficos
+    pedidos_por_fecha = pedidos_qs.values("fecha_registro__date").annotate(total=Sum("costo_total")).order_by("fecha_registro__date")
+    fechas_grafico = [p["fecha_registro__date"].strftime("%d/%m/%Y") for p in pedidos_por_fecha if p["fecha_registro__date"]]
+    pedidos_grafico = [float(p["total"] or 0) for p in pedidos_por_fecha]
+
+    productos_qs = ProductosPedido.objects.filter(pedido__in=pedidos_qs).values("producto__nombre").annotate(total_pedido=Sum("cantidad")).order_by("-total_pedido")[:5]
+    productos_labels = [p["producto__nombre"] for p in productos_qs]
+    productos_data = [int(p["total_pedido"] or 0) for p in productos_qs]
+
+    # Paginación
+    paginator = Paginator(pedidos_qs.order_by('-fecha_registro'), 100)
+    page_number = request.GET.get('page')
+    pedidos_page = paginator.get_page(page_number)
+
+    context = {
+        "pedidos": pedidos_page,
+        "clientes": clientes,
+        "vendedores": vendedores,
+        "total_pedidos": total_pedidos,
+        "total_monto": total_monto,
+        "total_completados": total_completados,
+        "total_pendientes": total_pendientes,
+        "total_cancelados": total_cancelados,
+        "fechas_grafico": fechas_grafico,
+        "pedidos_grafico": pedidos_grafico,
+        "productos_labels": productos_labels,
+        "productos_data": productos_data,
+        "request": request
+    }
+
+    return render(request, 'reportes/pedidos.html', context)
