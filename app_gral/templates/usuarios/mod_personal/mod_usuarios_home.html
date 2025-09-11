@@ -8,15 +8,15 @@
     </h2>
 
 <!-- Barra de búsqueda -->
-<div class="input-group mb-3">
-    <form method="GET" action="{% url 'mod_usuarios_home' %}">
-        <input type="text" class="form-control" name="search" placeholder="Buscar por CI o nombres" value="{{ search_term }}">
-     
-    </form>
-    <button type="submit" class="btn btn-dark">
-        <i class="fas fa-search"></i>
-    </button>
-</div>
+    <div class="input-group mb-3">
+        <form method="GET" action="{% url 'mod_usuarios_home' %}">
+            <input type="text" class="form-control" name="search" placeholder="Buscar por CI o nombres" value="{{ search_term }}">
+        
+        </form>
+        <button type="submit" class="btn btn-dark">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
 
 
     <!-- Botón alternar usuarios inactivos -->

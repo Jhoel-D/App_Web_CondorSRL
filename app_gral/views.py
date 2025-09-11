@@ -1120,13 +1120,16 @@ def reporte_ventas(request):
     
     # --- Gráfico de tendencia de ventas ---
     ventas_por_fecha = (
-        ventas_qs.values("fecha_registro__date")
+        ventas_qs.values("fecha_registro")
         .annotate(total=Sum("costo_total"))
-        .order_by("fecha_registro__date")
+        .order_by("fecha_registro")
     )
-    fechas_grafico = [v["fecha_registro__date"].strftime("%d/%m/%Y") for v in ventas_por_fecha if v["fecha_registro__date"]]
+    fechas_grafico = [v["fecha_registro"].strftime("%d/%m/%Y") for v in ventas_por_fecha if v["fecha_registro"]]
     ventas_grafico = [float(v["total"] or 0) for v in ventas_por_fecha]
     
+    print("VENTAS POR FECHA:", list(ventas_por_fecha))
+    print("FECHAS GRAFICO:", fechas_grafico)
+    print("VENTAS GRAFICO:", ventas_grafico)
      # --- Top productos más vendidos ---
     productos_qs = (
         ProductosVenta.objects.filter(venta__in=ventas_qs)
@@ -1341,8 +1344,139 @@ def reporte_productos(request):
 def reporte_financiero(request):
     return render(request, 'reportes/financiero.html')
 
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum, Count
+from django.db.models.functions import TruncDate
+from .models import Ventas, ProductosVenta, ProductoInventario, Cliente, Pedidos, Usuario
+from datetime import datetime
+
+@login_required
 def dashboard(request):
-    return render(request, 'reportes/dashboard.html')
+    # --- Filtros GET (igual que reporte_ventas) ---
+    ventas_qs = Ventas.objects.all()
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+    cliente_id = request.GET.get('cliente')
+    estado = request.GET.get('estado')
+
+    if fecha_desde:
+        try:
+            fecha_desde_dt = datetime.strptime(fecha_desde, "%Y-%m-%d")
+            ventas_qs = ventas_qs.filter(fecha_registro__gte=fecha_desde_dt)
+        except ValueError:
+            pass
+
+    if fecha_hasta:
+        try:
+            fecha_hasta_dt = datetime.strptime(fecha_hasta, "%Y-%m-%d")
+            ventas_qs = ventas_qs.filter(fecha_registro__lte=fecha_hasta_dt)
+        except ValueError:
+            pass
+
+    if cliente_id:
+        ventas_qs = ventas_qs.filter(id_cliente=cliente_id)
+
+    if estado:
+        ventas_qs = ventas_qs.filter(estado=estado.upper())
+
+    # --- KPIs ---
+    total_ingresos = ventas_qs.aggregate(total=Sum('costo_total'))['total'] or 0
+    total_ventas = ventas_qs.count()
+    productos_vendidos = ProductosVenta.objects.filter(venta__in=ventas_qs).aggregate(total=Sum('cantidad'))['total'] or 0
+    clientes_activos = Cliente.objects.filter(ventas_como_cliente__estado='COMPLETADO').distinct().count()
+    productos_stock = ProductoInventario.objects.filter(cantidad_stock__gt=0).count()
+
+    # --- Gráfico de Tendencia de Ventas ---
+    ventas_por_fecha = (
+        ventas_qs
+        .annotate(fecha=TruncDate('fecha_registro'))
+        .values('fecha_registro')
+        .annotate(total=Sum('costo_total'))
+        .order_by('fecha_registro')
+    )
+
+    fechas_grafico = [v['fecha_registro'].strftime("%d/%m/%Y") for v in ventas_por_fecha if v['fecha_registro']]
+    ventas_grafico = [float(v['total'] or 0) for v in ventas_por_fecha]
+    
+    print("VENTAS POR FECHA:", list(ventas_por_fecha))
+    print("FECHAS GRAFICO:", fechas_grafico)
+    print("VENTAS GRAFICO:", ventas_grafico)
+
+
+    # --- Distribución por Categoría ---
+    categorias_qs = (
+        ProductosVenta.objects.filter(venta__in=ventas_qs)
+        .values('producto__id_categoria__nombre')
+        .annotate(total=Sum('cantidad'))
+        .order_by('-total')
+    )
+    categorias_labels = [c['producto__id_categoria__nombre'] for c in categorias_qs]
+    categorias_data = [int(c['total'] or 0) for c in categorias_qs]
+
+    # --- Resumen por Módulos ---
+    resumen_modulos = {
+        'usuarios': {
+            'activos': Usuario.objects.filter(is_active=True).count(),
+            'total': Usuario.objects.count()
+        },
+        'productos': {
+            'stock': ProductoInventario.objects.filter(cantidad_stock__gt=0).count(),
+            'total': ProductoInventario.objects.count()
+        },
+        'clientes': {
+            'activos': clientes_activos,
+            'total': Cliente.objects.count()
+        },
+        'pedidos': {
+            'pendientes': Pedidos.objects.filter(estado='Pendiente').count(),
+            'total': Pedidos.objects.count()
+        }
+    }
+
+    # --- Alertas importantes ---
+    alertas = {
+        'stock_bajo': ProductoInventario.objects.filter(cantidad_stock__lt=10).count(),
+        'pedidos_pendientes': Pedidos.objects.filter(estado='Pendiente').count(),
+    }
+
+    # --- Top productos ---
+    top_productos_qs = (
+        ProductosVenta.objects.values('producto__nombre')
+        .annotate(total_vendido=Sum('cantidad'))
+        .order_by('-total_vendido')[:5]
+    )
+
+    # --- Actividad reciente ---
+    actividad_reciente = ventas_qs.order_by('-fecha_registro')[:5]
+
+    # --- Clientes para filtro ---
+    clientes = Cliente.objects.all()
+
+    context = {
+        'total_ingresos': total_ingresos,
+        'total_ventas': total_ventas,
+        'productos_vendidos': productos_vendidos,
+        'clientes_activos': clientes_activos,
+        'productos_stock': productos_stock,
+        'fechas_grafico': fechas_grafico,
+        'ventas_grafico': ventas_grafico,
+        'categorias_labels': categorias_labels,
+        'categorias_data': categorias_data,
+        'resumen_modulos': resumen_modulos,
+        'alertas': alertas,
+        'top_productos': top_productos_qs,
+        'actividad_reciente': actividad_reciente,
+        'clientes': clientes,
+        'filtros': {
+            'fecha_desde': fecha_desde,
+            'fecha_hasta': fecha_hasta,
+            'cliente_id': int(cliente_id) if cliente_id else '',
+            'estado': estado or ''
+        }
+    }
+
+    return render(request, 'reportes/dashboard.html', context)
 
 # views.py
 from django.shortcuts import render
@@ -1497,8 +1631,8 @@ def reporte_pedidos(request):
     total_cancelados = pedidos_qs.filter(estado='CANCELADO').count()
 
     # Gráficos
-    pedidos_por_fecha = pedidos_qs.values("fecha_registro__date").annotate(total=Sum("costo_total")).order_by("fecha_registro__date")
-    fechas_grafico = [p["fecha_registro__date"].strftime("%d/%m/%Y") for p in pedidos_por_fecha if p["fecha_registro__date"]]
+    pedidos_por_fecha = pedidos_qs.values("fecha_registro").annotate(total=Sum("costo_total")).order_by("fecha_registro")
+    fechas_grafico = [p["fecha_registro"].strftime("%d/%m/%Y") for p in pedidos_por_fecha if p["fecha_registro"]]
     pedidos_grafico = [float(p["total"] or 0) for p in pedidos_por_fecha]
 
     productos_qs = ProductosPedido.objects.filter(pedido__in=pedidos_qs).values("producto__nombre").annotate(total_pedido=Sum("cantidad")).order_by("-total_pedido")[:5]

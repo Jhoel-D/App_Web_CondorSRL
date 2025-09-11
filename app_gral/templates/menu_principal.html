@@ -8,108 +8,143 @@
       <div class="row align-items-center">
         <div class="col-12 col-md-8">
           {% if user.is_authenticated %}
-            <h1 class="fw-bold text-primary">¡BIENVENIDO AL SISTEMA DE LA COMPAÑÍA INTERNACIONAL DE FRANQUICIAS CONDOR S.R.L.!</h1>
+            <h1 class="fw-bold text-primary">¡COMPAÑÍA INTERNACIONAL DE FRANQUICIAS CONDOR S.R.L.!</h1>
           {% else %}
             <h1 class="fw-bold text-primary">¡ESTÁS POR INGRESAR AL SISTEMA DE FRANQUICIAS CONDOR S.R.L.!</h1>
           {% endif %}
+          <p class="fw-bold">Bienvenido: {{ user.first_name }} {{ user.last_name }}.</p>
         </div>
         <div class="col-12 col-md-4">
-          <img src="{% static 'logo_navidad.jpg' %}" alt="Logo" class="img-fluid rounded shadow" style="max-width: 250px;">
+          <img src="{% static 'logo.jpg' %}" alt="Logo" class="img-fluid rounded shadow" style="max-width: 250px;">
         </div>
       </div>
     </div>
 
-    <!-- Módulos del Dashboard -->
+    <!-- Módulos del Menu -->
     <div class="row mt-4">
       {% if user.is_authenticated %}
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-          <div class="card text-center shadow-sm">
-            <div class="card-body">
-              <i class="bx bx-user icon mb-3" style="font-size: 40px;"></i>
-              <h5 class="card-title">USUARIOS</h5>
-              <p class="card-text">Gestión de usuarios del sistema</p>
-              <a href="{% url 'mod_usuarios_home' %}" class="btn btn-primary">Ver Más</a>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fa-solid fa-users" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">USUARIOS</h5>
+                    <p class="card-text text-muted">Gestión de usuarios del sistema.</p>
+                    <a href="{% url 'mod_usuarios_home' %}" class="btn btn-secondary">
+                        <i class="fa-solid fa-eye me-2"></i>Ver Más
+                    </a>
+                </div>
             </div>
-          </div>
         </div>
 
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-          <div class="card text-center shadow-sm">
-            <div class="card-body">
-              <i class="bx bxs-user-detail icon mb-3" style="font-size: 40px;"></i>
-              <h5 class="card-title">ROLES</h5>
-              <p class="card-text">Administración de roles y permisos</p>
-              <a href="{% url 'roles_list' %}" class="btn btn-primary">Ver Más</a>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fa-solid fa-user-lock" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">ROLES</h5>
+                    <p class="card-text text-muted">Administración de roles.</p>
+                    <a href="{% url 'roles_list' %}" class="btn btn-secondary">
+                        <i class="fa-solid fa-eye me-2"></i>Ver Más
+                    </a>
+                </div>
             </div>
-          </div>
         </div>
 
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-          <div class="card text-center shadow-sm">
-            <div class="card-body">
-              <i class="bx bx-category icon mb-3" style="font-size: 40px;"></i>
-              <h5 class="card-title">CATEGORÍAS</h5>
-              <p class="card-text">Gestión de categorías de productos</p>
-              <a href="{% url 'mod_categorias_home' %}" class="btn btn-primary">Ver Más</a>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fa-solid fa-list" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">CATEGORÍAS</h5>
+                    <p class="card-text text-muted">Gestión de categorías.</p>
+                    <a href="{% url 'mod_categorias_home' %}" class="btn btn-secondary">
+                        <i class="fa-solid fa-eye me-2"></i>Ver Más
+                    </a>
+                </div>
             </div>
-          </div>
         </div>
 
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-          <div class="card text-center shadow-sm">
-            <div class="card-body">
-              <i class="bx bx-store icon mb-3" style="font-size: 40px;"></i>
-              <h5 class="card-title">PRODUCTOS</h5>
-              <p class="card-text">Gestión de productos en el sistema</p>
-              <a href="{% url 'mod_productos_home' %}" class="btn btn-primary">Ver Más</a>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fa-solid fa-box" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">PRODUCTOS</h5>
+                    <p class="card-text text-muted">Gestión de productos.</p>
+                    <a href="{% url 'mod_productos_home' %}" class="btn btn-secondary">
+                        <i class="fa-solid fa-eye me-2"></i>Ver Más
+                    </a>
+                </div>
             </div>
-          </div>
         </div>
 
       {% endif %}
 
-      <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-        <div class="card text-center shadow-sm">
-          <div class="card-body">
-            <i class="bx bx-user-pin icon mb-3" style="font-size: 40px;"></i>
-            <h5 class="card-title">CLIENTES</h5>
-            <p class="card-text">Gestión de clientes</p>
-            <a href="{% url 'mod_clientes_home' %}" class="btn btn-primary">Ver Más</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-        <div class="card text-center shadow-sm">
-          <div class="card-body">
-            <i class="bx bx-book-reader icon mb-3" style="font-size: 40px;"></i>
-            <h5 class="card-title">VENTAS</h5>
-            <p class="card-text">Gestión de ventas realizadas</p>
-            <a href="{% url 'mod_ventas_home' %}" class="btn btn-primary">Ver Más</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-        <div class="card text-center shadow-sm">
-          <div class="card-body">
-            <i class="bx bx-envelope-open icon mb-3" style="font-size: 40px;"></i>
-            <h5 class="card-title">PEDIDOS</h5>
-            <p class="card-text">Gestión de pedidos</p>
-            <a href="{% url 'mod_pedidos_home' %}" class="btn btn-primary">Ver Más</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-          <div class="card text-center shadow-sm">
-            <div class="card-body">
-              <i class="fa-solid fa-square-poll-vertical" style="font-size: 40px;"></i>
-              <h5 class="card-title">REPORTES</h5>
-              <p class="card-text">Vistas de reportes</p>
-              <a href="{% url 'mod_reportes_home' %}" class="btn btn-primary">Ver Más</a>
+      <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="bx bx-user icon mb-3" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">CLIENTES</h5>
+                    <p class="card-text text-muted">Gestión de clientes.</p>
+                    <a href="{% url 'mod_clientes_home' %}" class="btn btn-secondary">
+                        <i class="fa-solid fa-eye me-2"></i>Ver Más
+                    </a>
+                </div>
             </div>
-          </div>
+        </div>
+
+
+      <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="bx bx-book-reader icon mb-3" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">VENTAS</h5>
+                    <p class="card-text text-muted">Gestión de ventas.</p>
+                    <a href="{% url 'mod_ventas_home' %}" class="btn btn-secondary">
+                        <i class="fa-solid fa-eye me-2"></i>Ver Más
+                    </a>
+                </div>
+            </div>
+        </div>
+
+      <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="bx bx-cart icon mb-3" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">PEDIDOS</h5>
+                    <p class="card-text text-muted">Gestión de pedidos.</p>
+                    <a href="{% url 'mod_pedidos_home' %}" class="btn btn-secondary">
+                        <i class="fa-solid fa-eye me-2"></i>Ver Más
+                    </a>
+                </div>
+            </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="bx bx-pie-chart-alt icon mb-3" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">REPORTES</h5>
+                    <p class="card-text text-muted">Gestión de reportes.</p>
+                    <a href="{% url 'mod_reportes_home' %}" class="btn btn-secondary">
+                        <i class="fa-solid fa-eye me-2"></i>Ver Más
+                    </a>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -118,12 +153,18 @@
     {% if user.is_authenticated %}
       <!-- Opciones de Perfil y Cerrar Sesión -->
       <div class="col-12 text-center mt-4">
-        <a href="{% url 'ver_perfil' %}" class="btn btn-info">Ver Perfil</a>
-        <a href="{% url 'cerrar_sesion' %}" class="btn btn-danger">Cerrar Sesión</a>
+        <a href="{% url 'ver_perfil' %}" class="btn btn-info">Ver Perfil
+          <i class="bx bx-user icon" style="font-size: 20px;"></i>
+        </a>
+        <a href="{% url 'cerrar_sesion' %}" class="btn btn-danger">Cerrar Sesión
+          <i class="bx bx-log-out icon" style="font-size: 20px;"></i>
+        </a>
       </div>
     {% else %}
       <div class="col-12 text-center mt-4">
-        <a href="{% url 'iniciar_sesion' %}" class="btn btn-primary">Iniciar Sesión</a>
+        <a href="{% url 'iniciar_sesion' %}" class="btn btn-primary">Iniciar Sesión
+          <i class="bx bx-log-in icon" style="font-size: 20px;"></i>
+        </a>
       </div>
     {% endif %}
   </div>

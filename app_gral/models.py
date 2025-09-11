@@ -163,7 +163,7 @@ class Ventas(models.Model):
     def calcular_costo_total(self):
         # Calcular el costo total sumando los subtotales de los productos
         return sum(item.subtotal for item in self.detalle_productos.all())
-    @transaction.atomic
+    @transaction.atomic 
     def save(self, *args, **kwargs):
         if self.pk:  # Si la venta ya existe, recalcula el costo total solo si los productos cambian
             self.costo_total = self.calcular_costo_total()
