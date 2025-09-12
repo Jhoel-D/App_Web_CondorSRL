@@ -2,22 +2,34 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2 class="fw-bold text-primary mb-1">
+    <!-- Título -->
+    <h2 class="fw-bold text-primary mb-3">
         <i class="fas fa-shopping-cart"></i>
         MODULO DE PEDIDOS
     </h2>
 
-    <!-- Barra de búsqueda -->
-    <div class="input-group mb-3">
-        <form method="GET" action="{% url 'mod_pedidos_home' %}">
-            <input type="text" class="form-control" name="search" placeholder="Buscar por CI o nombres" value="{{ search_term }}">
+    <!-- Barra de búsqueda + Botones -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <!-- Formulario de búsqueda -->
+        <form method="GET" action="{% url 'mod_pedidos_home' %}" class="d-flex w-50">
+            <input type="text" class="form-control me-2" name="search" placeholder="Buscar por CI o nombres" value="{{ search_term }}">
+            <button type="submit" class="btn btn-dark">
+                <i class="fas fa-search"></i>
+            </button>
         </form>
-        <button type="submit" class="btn btn-dark">
-            <i class="fas fa-search"></i>
-        </button>
+
+        <!-- Botones Agregar Pedido y Volver -->
+        <div class="d-flex gap-2">
+            <a href="{% url 'crear_pedido' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Agregar Pedido
+            </a>
+            <a href="{% url 'menu_principal' %}" class="btn btn-dark">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
     </div>
 
-    <!-- Tabla de pedidoss -->
+    <!-- Tabla de Pedidos -->
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead class="table-dark">
@@ -34,66 +46,45 @@
                 </tr>
             </thead>
             <tbody>
-                {% for pedidos in pedidos %}
+                {% for pedido in pedidos %}
                 <tr>
                     <td>{{ forloop.counter }}</td>
-                    <td>{{ pedidos.id_pedido }}</td>
-                    <td>{{ pedidos.id_cliente.nombre }} {{ pedidos.id_cliente.apellido }}</td>
+                    <td>{{ pedido.id_pedido }}</td>
+                    <td>{{ pedido.id_cliente.nombre }} {{ pedido.id_cliente.apellido }}</td>
                     <td>
-                        <a href="{% url 'ver_productos_pedido' pedidos.id_pedido %}" class="btn btn-success">
+                        <a href="{% url 'ver_productos_pedido' pedido.id_pedido %}" class="btn btn-success btn-sm">
                             <i class="bx bx-store icon"></i> Ver Productos
                         </a>
                     </td>
-                    <td>{{ pedidos.monto_pagado }} Bs</td>
-                    <td>{{ pedidos.costo_total }} Bs</td>
-                    <td>{{ pedidos.fecha_registro|date:"d-m-Y H:i" }}</td>
-                    <td>{{ pedidos.beneficiario }}</td>
-
+                    <td>{{ pedido.monto_pagado }} Bs</td>
+                    <td>{{ pedido.costo_total }} Bs</td>
+                    <td>{{ pedido.fecha_registro|date:"d-m-Y H:i" }}</td>
+                    <td>{{ pedido.beneficiario }}</td>
                     <td>
-                        <div class=" justify-content-center">
-                            <a href="{% url 'ver_detalle_pedido' pedidos.id_pedido %}" class="btn btn-info btn-sm me-2" title="Ver"> 
-                                <i class="fas fa-eye"></i>
-                                Ver
+                        <div class="d-flex justify-content-center">
+                            <a href="{% url 'ver_detalle_pedido' pedido.id_pedido %}" class="btn btn-info btn-sm me-2" title="Ver"> 
+                                <i class="fas fa-eye"></i> Ver
                             </a>
-                            <a href="javascript:void(0);" class="btn btn-danger btn-sm" title="Eliminar" onclick="deleteUsuario({{ pedidos.id_pedido }});">
-                                <i class="fas fa-trash-alt"></i>
-                                Eliminar
-                             </a>
-                             <!-- <a href="javascript:void(0);" class="btn btn-success btn-sm me-2" title="Imprimir" onclick="abrirImpresion({{ pedidos.id_pedido }});">
-                                  <i class="fas fa-print"></i> Imprimir
-                             </a> -->
-                             <a href="{% url 'imprimir_pedido' pedidos.id_pedido %}" class="btn btn-success btn-sm me-2" title="Imprimir" target="_blank"> 
-                                <i class="fas fa-print"></i>
-                                Imprimir
+                            <a href="javascript:void(0);" class="btn btn-danger btn-sm me-2" title="Eliminar" onclick="deletePedido({{ pedido.id_pedido }});">
+                                <i class="fas fa-trash-alt"></i> Eliminar
                             </a>
-                          
-                          <script>
-                              function abrirImpresion(pedidoId) {
-                                  const url = "{% url 'imprimir_venta' 0 %}".replace("0", pedidoId);
-                                  const ventana = window.open(url, '_blank');
-                                  ventana.print();
-                              }
-                          </script>
-                          
+                            <a href="{% url 'imprimir_pedido' pedido.id_pedido %}" class="btn btn-success btn-sm" title="Imprimir" target="_blank"> 
+                                <i class="fas fa-print"></i> Imprimir
+                            </a>
                         </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="10" class="text-center">No se encontraron pedidoss.</td>
+                    <td colspan="9" class="text-center">No se encontraron pedidos.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    <!-- Botón para agregar nuevo pedidos -->
-    <div class="text-end mt-3">
-        <a href="{% url 'crear_pedido' %}" class="btn btn-success"> 
-            <i class="fas fa-user-plus"></i> Agregar pedidos
-        </a>
-    </div>
-     <!-- Paginación -->
-     <nav aria-label="Pagination">
+
+    <!-- Paginación -->
+    <nav aria-label="Pagination">
         <ul class="pagination justify-content-center">
             {% if pedidos.has_previous %}
             <li class="page-item">
@@ -112,8 +103,11 @@
     </nav>
 </div>
 
+<!-- Incluir SweetAlert CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-    function deleteUsuario(pedidoId) {
+    function deletePedido(pedidoId) {
         Swal.fire({
             title: '¿Estás seguro?',
             text: "¡Este pedido será eliminado y dado de baja!",
@@ -125,9 +119,7 @@
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Redirigir a la URL de eliminación (con el ID del producto)
                 window.location.href = "{% url 'eliminar_pedido' 0 %}".replace("0", pedidoId);
-                
             }
         });
     }

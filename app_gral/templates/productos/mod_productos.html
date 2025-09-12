@@ -2,19 +2,34 @@
 
 {% block content %}
 <div class="container mt-5 text">
-    <h2 class="fw-bold text-primary mb-1">
+    <!-- Título -->
+    <h2 class="fw-bold text-primary mb-3">
         <i class="fas fa-box"></i>
         MODULO DE PRODUCTOS
     </h2>
-    
-    <!-- Barra de búsqueda -->
-    <div class="input-group mb-3">
-        <form method="GET" action="{% url 'mod_productos_home' %}">
-            <input type="text" class="form-control" name="search" placeholder="Buscar por nombre de producto" value="{{ search_term }}">
+
+    <!-- Barra de búsqueda + Botones -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <!-- Formulario de búsqueda -->
+        <form method="GET" action="{% url 'mod_productos_home' %}" class="d-flex w-50">
+            <input type="text" class="form-control me-2" name="search" placeholder="Buscar por nombre de producto" value="{{ search_term }}">
+            <button type="submit" class="btn btn-dark">
+                <i class="fas fa-search"></i>
+            </button>
         </form>
-        <button type="submit" class="btn btn-dark">
-            <i class="fas fa-search"></i>
-        </button>
+
+        <!-- Botones Agregar, Ingreso de Stock y Volver -->
+        <div class="d-flex gap-2">
+            <a href="{% url 'crear_producto' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Agregar Producto
+            </a>
+            <a href="" class="btn btn-primary">
+                <i class="fas fa-boxes"></i> Ingreso de Stock
+            </a>
+            <a href="{% url 'menu_principal' %}" class="btn btn-dark">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
     </div>
 
     <!-- Tabla de Productos -->
@@ -67,13 +82,13 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="text-center">No se encontraron productos.</td>
+                    <td colspan="8" class="text-center">No se encontraron productos.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    
+
     <!-- Paginación -->
     <nav aria-label="Pagination">
         <ul class="pagination justify-content-center">
@@ -92,17 +107,6 @@
             {% endif %}
         </ul>
     </nav>
-
-    <!-- Botón para agregar nuevo producto -->
-    <div class="text-end mt-3">
-        <a href="{% url 'crear_producto' %}" class="btn btn-success">
-            <i class="fas fa-plus"></i> Agregar Producto
-        </a>
-        <!-- Botón para aumento o ingreso de stock de producto -->
-        <a href="" class="btn btn-primary">
-            <i class="fas fa-boxes"></i> Ingreso de Stock
-        </a>
-    </div>
 </div>
 
 <!-- Incluir SweetAlert CDN -->
@@ -112,20 +116,18 @@
     function deleteProducto(productId) {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: "¡Este producto será eliminado!",
+            text: "¡Este producto será eliminado/ dado de baja!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, eliminarlo',
+            confirmButtonText: 'Sí, dar de baja',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Redirigir a la URL de eliminación (con el ID del producto)
                 window.location.href = "{% url 'eliminar_producto' 0 %}".replace("0", productId);
             }
         });
     }
 </script>
-
 {% endblock %}

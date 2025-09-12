@@ -166,22 +166,22 @@
     <!-- Gráfico de ventas -->
     <div class="row mb-4">
         <div class="col-lg-8 mb-4">
-            <div class="card">
+            <div class="card h-100"> <!-- h-100 hace que la card tome toda la altura -->
                 <div class="card-header">
                     <h5 class="mb-0">Tendencia de Ventas</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="ventasChart" height="100"></canvas>
+                    <canvas id="ventasChart"></canvas>
                 </div>
             </div>
         </div>
         <div class="col-lg-4 mb-4">
-            <div class="card">
+            <div class="card h-100">
                 <div class="card-header">
                     <h5 class="mb-0">Top Productos</h5>
                 </div>
-                <div class="card-body">
-                    <canvas id="productosChart" height="200"></canvas>
+                <div class="card-body d-flex justify-content-center align-items-center">
+                    <canvas id="productosChart"></canvas>
                 </div>
             </div>
         </div>
@@ -276,48 +276,72 @@
 <!-- Scripts para gráficos -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Gráfico de tendencia de ventas
-const ctx1 = document.getElementById('ventasChart').getContext('2d');
-const ventasChart = new Chart(ctx1, {
-    type: 'line',
-    data: {
-        labels: {{ fechas_grafico|safe }},
-        datasets: [{
-            label: 'Ventas',
-            data: {{ ventas_grafico|safe }},
-            borderColor: 'rgb(75, 192, 192)',
-            backgroundColor: 'rgba(75, 192, 192, 0.1)',
-            tension: 0.1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false
-    }
-});
 
-// Gráfico de productos más vendidos
-const ctx2 = document.getElementById('productosChart').getContext('2d');
-const productosChart = new Chart(ctx2, {
-    type: 'doughnut',
-    data: {
-        labels: {{ productos_labels|safe }},
-        datasets: [{
-            data: {{ productos_data|safe }},
-            backgroundColor: [
-                '#FF6384',
-                '#36A2EB',
-                '#FFCE56',
-                '#4BC0C0',
-                '#9966FF'
-            ]
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false
-    }
-});
+// Gráfico de tendencia de ventas (line chart)
+// Gráfico line
+    const ctx1 = document.getElementById('ventasChart').getContext('2d');
+    const ventasChart = new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: {{ fechas_grafico|safe }},
+            datasets: [{
+                label: 'Ventas: Bs',
+                data: {{ ventas_grafico|safe }},
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                tension: 0.1,
+                fill: true,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        boxWidth: 20,
+                        padding: 10
+                    }
+                }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+
+// Gráfico de productos más vendidos (doughnut chart)
+    const ctx2 = document.getElementById('productosChart').getContext('2d');
+    const productosChart = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: {{ productos_labels|safe }},
+            datasets: [{
+                data: {{ productos_data|safe }},
+                backgroundColor: [
+                    '#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40','#C9CBCF',
+                    '#8B0000','#00FF00','#00008B','#FFD700','#FF69B4','#00CED1','#ADFF2F'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { boxWidth: 20, padding: 10 }
+                }
+            }
+        }
+    });
+
+
 
 // Funciones auxiliares
 function exportarExcel() {

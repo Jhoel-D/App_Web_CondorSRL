@@ -2,19 +2,31 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2 class="fw-bold text-primary mb-1">
+    <!-- Título -->
+    <h2 class="fw-bold text-primary mb-3">
         <i class="fas fa-users"></i>
-        MODULO DE CLIENTES
+        MÓDULO DE CLIENTES
     </h2>
 
-    <!-- Barra de búsqueda -->
-    <div class="input-group mb-3">
-        <form method="GET" action="{% url 'mod_clientes_home' %}">
-            <input type="text" class="form-control" name="search" placeholder="Buscar por CI o nombres" value="{{ search_term }}">
+    <!-- Barra de búsqueda + Botones -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <!-- Formulario de búsqueda -->
+        <form method="GET" action="{% url 'mod_clientes_home' %}" class="d-flex w-50">
+            <input type="text" class="form-control me-2" name="search" placeholder="Buscar por CI o nombres" value="{{ search_term }}">
+            <button type="submit" class="btn btn-dark">
+                <i class="fas fa-search"></i>
+            </button>
         </form>
-        <button type="submit" class="btn btn-dark">
-            <i class="fas fa-search"></i>
-        </button>
+
+        <!-- Botones Agregar Cliente y Volver -->
+        <div class="d-flex gap-2">
+            <a href="{% url 'registrar_cliente' %}" class="btn btn-success">
+                <i class="fas fa-user-plus"></i> Agregar Cliente
+            </a>
+            <a href="{% url 'menu_principal' %}" class="btn btn-dark">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
     </div>
 
     <!-- Tabla de Clientes -->
@@ -44,15 +56,8 @@
                     <td>{{ cliente.apellido }}</td>
                     <td>{{ cliente.email }}</td>
                     <td>{{ cliente.telefono }}</td>
-                    <td>{{ cliente.direccion}}</td>
-                    <!-- <td>
-                        {% if cliente.groups.count > 0 %}
-                            {{ cliente.groups.first.name }}
-                        {% else %}
-                            Sin rol
-                        {% endif %}
-                    </td> -->
-                    <td><p>{{ cliente.fecha_registro }}</p></td>
+                    <td>{{ cliente.direccion }}</td>
+                    <td>{{ cliente.fecha_registro }}</td>
                     <td>
                         <div class="d-flex justify-content-center">
                             <a href="{% url 'ver_cliente' cliente.id %}" class="btn btn-info btn-sm me-2">
@@ -62,11 +67,11 @@
                                 <i class="fas fa-edit"></i>
                             </a>
                             <a href="javascript:void(0);" 
-                                class="btn btn-danger btn-sm" 
-                                title="Eliminar" 
-                                onclick="deleteUsuario({{ cliente.id }});">
+                               class="btn btn-danger btn-sm" 
+                               title="Eliminar" 
+                               onclick="deleteUsuario({{ cliente.id }});">
                                 <i class="fas fa-trash-alt"></i>
-                             </a>
+                            </a>
                         </div>
                     </td>
                 </tr>
@@ -78,14 +83,9 @@
             </tbody>
         </table>
     </div>
-    <!-- Botón para agregar nuevo cliente -->
-    <div class="text-end mt-3">
-        <a href="{% url 'registrar_cliente' %}" class="btn btn-success">
-            <i class="fas fa-user-plus"></i> Agregar Cliente
-        </a>
-    </div>
-     <!-- Paginación -->
-     <nav aria-label="Pagination">
+
+    <!-- Paginación -->
+    <nav aria-label="Pagination">
         <ul class="pagination justify-content-center">
             {% if usuarios.has_previous %}
             <li class="page-item">
@@ -104,20 +104,22 @@
     </nav>
 </div>
 
+<!-- Incluir SweetAlert CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     function deleteUsuario(clienteId) {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: "¡Este Cliente será eliminado!",
+            text: "¡Este cliente será eliminado/ dado de baja!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, eliminarlo',
+            confirmButtonText: 'Sí, dar de baja',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Redirigir a la URL de eliminación (con el ID del producto)
                 window.location.href = "{% url 'eliminar_cliente' 0 %}".replace("0", clienteId);
             }
         });

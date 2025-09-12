@@ -6,23 +6,23 @@
     <form id="crear-venta-form" method="POST" class="needs-validation" novalidate>
         {% csrf_token %}
         <div class="mb-3">
-            <label for="id_cliente" class="form-label">Cliente</label>
+            <label for="id_cliente" class="form-label"></label>
             {{ form.id_cliente|as_crispy_field }}
         </div>
         <div class="mb-3">
-            <label for="beneficiario" class="form-label">Beneficiario</label>
+            <label for="beneficiario" class="form-label"></label>
             {{ form.beneficiario|as_crispy_field }}
         </div>
         <div class="mb-3">
-            <label for="celular_a_comunicar" class="form-label">Cliente</label>
+            <label for="celular_a_comunicar" class="form-label"></label>
             {{ form.celular_a_comunicar|as_crispy_field }}
         </div>
         <div class="mb-3">
-            <label for="id_cliente" class="form-label">Cliente</label>
+            <label for="id_cliente" class="form-label"></label>
             {{ form.monto_pagado|as_crispy_field }}
         </div>
         <div class="mb-3">
-            <label for="estado" class="form-label">Estado</label>
+            <label for="estado" class="form-label"></label>
             {{ form.estado|as_crispy_field }}
         </div>
 

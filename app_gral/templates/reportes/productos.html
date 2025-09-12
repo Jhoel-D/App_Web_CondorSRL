@@ -152,11 +152,27 @@
             labels: {{ categorias_labels|safe }},
             datasets: [{
                 data: {{ categorias_data|safe }},
-                backgroundColor: ['#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40','#C9CBCF']
+                backgroundColor: [
+                    '#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40','#C9CBCF',
+                    '#8B0000','#00FF00','#00008B','#FFD700','#FF69B4','#00CED1','#ADFF2F'
+                ]
             }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right', // pone la leyenda al lado derecho
+                    labels: {
+                        boxWidth: 20,
+                        padding: 10
+                    }
+                }
+            }
+        }
     });
+
 
     const ctxStock = document.getElementById('stockChart').getContext('2d');
     new Chart(ctxStock, {
@@ -196,16 +212,16 @@
                     <tr>
                         <td>{{ p.id }}</td>
                         <td>{{ p.nombre }}</td>
-                        <td>{{ p.id_categoria.nombre }}</td>
-                        <td>{{ p.cantidad_stock }}</td>
-                        <td>${{ p.precio_unitario|floatformat:2 }}</td>
-                        <td>${{ p.valor_total|floatformat:2 }}</td>
+                        <td>{{ p.categoria }}</td>
+                        <td>{{ p.stock }}</td>
+                        <td>{{ p.precio_unitario|floatformat:2 }} Bs</td>
+                        <td>{{ p.valor_total|floatformat:2 }} Bs</td>
                         <td>
-                            {% if p.estado_stock == 'Agotado' %}
+                            {% if p.estado == 'Agotado' %}
                                 <span class="badge bg-danger"><i class="fa-solid fa-times-circle me-1"></i>Agotado</span>
-                            {% elif p.estado_stock == 'Bajo' %}
+                            {% elif p.estado == 'Bajo' %}
                                 <span class="badge bg-warning"><i class="fa-solid fa-exclamation-triangle me-1"></i>Bajo</span>
-                            {% elif p.estado_stock == 'Medio' %}
+                            {% elif p.estado == 'Medio' %}
                                 <span class="badge bg-info"><i class="fa-solid fa-exclamation-circle me-1"></i>Medio</span>
                             {% else %}
                                 <span class="badge bg-success"><i class="fa-solid fa-check-circle me-1"></i>Alto</span>

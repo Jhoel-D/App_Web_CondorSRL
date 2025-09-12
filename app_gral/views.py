@@ -1,19 +1,42 @@
 from django.shortcuts import render,redirect, get_object_or_404
 
 from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.forms import AuthenticationForm #Añadido
+from django.contrib.auth.forms import AuthenticationForm 
 from django.contrib.auth.decorators import login_required
 
 from django.contrib.auth.models import Group
 from .models import Usuario, ProductoInventario, Categoria, Ventas, ProductosVenta, Pedidos, ProductosPedido, Cliente
-from django.db.models import Q #para or en python
+from django.db.models import Sum, Count, Q #para or en python
 from django.core.paginator import Paginator
 
 from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib.auth.hashers import make_password
+#from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from .forms import UsuarioUpdateForm, ProductoInventarioForm, ProductoInventarioCreateForm, UsuarioForm, UsuarioCreateForm, CategoriaForm, CategoriaCreateForm, ProductosVentaForm, VentasForm, PedidosForm, ClienteCreateForm, ClienteForm
+
+from django.forms import modelformset_factory
+
+from django.http import JsonResponse, HttpResponse
+from django.db import transaction
+
+from django.utils.timezone import now, localtime
+from datetime import datetime
+
+#import openpyxl
+from openpyxl.styles import Border, Side, PatternFill, Alignment, Font
+
+from io import BytesIO
+
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
+
+from openpyxl import Workbook
+
+from django.db.models.functions import TruncDate
 
 
 # Create your views here.
@@ -175,7 +198,6 @@ def ver_cliente(request, cliente_id):
     cliente = get_object_or_404(Cliente, id=cliente_id)
     return render(request, 'usuarios/mod_cliente/ver_cliente.html', {'cliente': cliente})
 
-
 def editar_cliente(request, cliente_id):
     usuario = get_object_or_404(Cliente, id=cliente_id)
     if request.method == 'POST':
@@ -230,8 +252,6 @@ def registrar_cliente(request):
 def roles_list(request):
     roles = Group.objects.all().order_by('id')
     return render(request, 'usuarios/mod_personal/roles_list.html', {'roles': roles})
-
-
 # Agregar Rol
 def agregar_rol(request):
     if request.method == 'POST':
@@ -318,7 +338,6 @@ def ver_producto(request, producto_id):
     return render(request, 'productos/ver_producto.html', {'producto': producto})
 
 
-
 def editar_producto(request, producto_id):
     producto = get_object_or_404(ProductoInventario, id_producto=producto_id)
 
@@ -336,12 +355,6 @@ def editar_producto(request, producto_id):
         form = ProductoInventarioForm(instance=producto)
 
     return render(request, 'productos/editar_producto.html', {'form': form, 'producto': producto})
-
-# def eliminar_producto(request, producto_id):
-#     producto = get_object_or_404(ProductoInventario, id_producto=producto_id)
-#     producto.delete()
-#     messages.success(request, 'Producto eliminado exitosamente.')
-#     return redirect('mod_productos_home')
 
 def eliminar_producto(request, producto_id):
     producto = get_object_or_404(ProductoInventario, id_producto=producto_id)
@@ -392,8 +405,6 @@ def mod_categorias_home(request):
         'search_term': search_term,
     })
 
-
-
 def editar_categoria(request, categoria_id):
     categoria = get_object_or_404(Categoria, id_categoria=categoria_id)
 
@@ -427,7 +438,6 @@ def eliminar_categoria(request, categoria_id):
     # Redirigir a la vista de la lista de usuarios
     return redirect('mod_categorias_home')
 
-
 def crear_categoria(request):
     if request.method == 'POST':
         form = CategoriaCreateForm(request.POST, request.FILES)
@@ -442,8 +452,6 @@ def crear_categoria(request):
     
     return render(request, 'categorias/crear_categorias.html', {'form': form})
 
-
-
 #MOD VENTAS
 @login_required  
 def mod_ventas_home(request):
@@ -455,7 +463,9 @@ def mod_ventas_home(request):
     if search_term:
         ventas = ventas.filter(
             
-            Q(id_venta__icontains=search_term)
+            Q(id_venta__icontains=search_term) |
+            Q(id_cliente__nombre__icontains=search_term) |
+            Q(id_cliente__apellido__icontains=search_term)
         )
 
     # Paginación
@@ -479,7 +489,6 @@ def ver_productos_venta(request, venta_id):
     }
     return render(request, 'ventas/ver_productos_venta.html', context)
 
-
 def ver_detalle_venta(request, venta_id):
     # Obtener la venta y los productos asociados
     venta = get_object_or_404(Ventas, id_venta=venta_id)
@@ -491,7 +500,6 @@ def ver_detalle_venta(request, venta_id):
     }
     return render(request, 'ventas/ver_detalle_venta.html', context)
 
-from django.forms import modelformset_factory
 def editar_venta(request, venta_id):
     # Obtener la venta existente
     venta = get_object_or_404(Ventas, id_venta=venta_id)
@@ -582,11 +590,6 @@ def imprimir_venta(request, venta_id):
         'productos': productos,
     })
 
-from django.http import JsonResponse
-from django.db import transaction
-
-
-
 @login_required
 @transaction.atomic
 def crear_venta(request):
@@ -659,7 +662,10 @@ def mod_pedidos_home(request):
     if search_term:
         pedidos = pedidos.filter(
             
-            Q(id_pedido__icontains=search_term)
+            Q(id_pedido__icontains=search_term) |
+            Q(id_cliente__CI__icontains=search_term) |
+            Q(id_cliente__nombre__icontains=search_term) |
+            Q(id_cliente__apellido__icontains=search_term)
         )
 
     # Paginación
@@ -707,7 +713,6 @@ def dar_de_baja_pedido(request, pedido_id):
     pedido.save()
     messages.success(request, f'Pedido {estado} exitosamente.')
     return redirect('mod_pedidos_home')
-
 
 @login_required
 def imprimir_pedido(request, pedido_id):
@@ -786,10 +791,6 @@ def crear_pedido(request):
         return render(request, 'pedidos/crear_pedido.html', {'form': venta_form, 'productos': productos})
     
 #MOD REPORTES
-from django.utils.timezone import now, localtime
-from django.db.models import Sum, Count
-from datetime import datetime
-
 @login_required
 def mod_reportes_home(request):
     # Fecha y hora actual en la zona horaria local
@@ -826,8 +827,6 @@ def mod_reportes_home(request):
     }
 
     return render(request, 'reportes/mod_reportes_home.html', context)
-
-
 
 @login_required
 def reporte_clientes(request):
@@ -952,19 +951,7 @@ def reporte_clientes(request):
     }
     return render(request, 'reportes/clientes.html', context)
 
-
-from django.http import HttpResponse
 #Para Excel
-import openpyxl
-from openpyxl.styles import Border, Side, PatternFill, Alignment, Font
-
-from io import BytesIO
-from django.http import HttpResponse
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-
 
 @login_required
 def reporte_ventas(request):
@@ -1158,18 +1145,6 @@ def reporte_ventas(request):
     }
     return render(request, 'reportes/ventas.html', context)
 
-from django.shortcuts import render
-from django.core.paginator import Paginator
-from django.http import HttpResponse
-from io import BytesIO
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from openpyxl import Workbook
-from openpyxl.styles import Alignment, Border, Side, PatternFill, Font
-from .models import ProductoInventario, Categoria
-
 @login_required
 def reporte_productos(request):
     productos_qs = ProductoInventario.objects.select_related('id_categoria').all()
@@ -1340,16 +1315,9 @@ def reporte_productos(request):
 
     return render(request, "reportes/productos.html", context)
 
-
 def reporte_financiero(request):
     return render(request, 'reportes/financiero.html')
 
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Count
-from django.db.models.functions import TruncDate
-from .models import Ventas, ProductosVenta, ProductoInventario, Cliente, Pedidos, Usuario
-from datetime import datetime
 
 @login_required
 def dashboard(request):
@@ -1421,7 +1389,7 @@ def dashboard(request):
             'total': Usuario.objects.count()
         },
         'productos': {
-            'stock': ProductoInventario.objects.filter(cantidad_stock__gt=0).count(),
+            'activos': ProductoInventario.objects.filter(is_active=True).count(),
             'total': ProductoInventario.objects.count()
         },
         'clientes': {
@@ -1429,7 +1397,7 @@ def dashboard(request):
             'total': Cliente.objects.count()
         },
         'pedidos': {
-            'pendientes': Pedidos.objects.filter(estado='Pendiente').count(),
+            'activos': Pedidos.objects.filter(is_active=True).count(),
             'total': Pedidos.objects.count()
         }
     }
@@ -1478,22 +1446,6 @@ def dashboard(request):
 
     return render(request, 'reportes/dashboard.html', context)
 
-# views.py
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
-from django.db.models import Sum
-from io import BytesIO
-from datetime import datetime
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import inch
-from openpyxl import Workbook
-from openpyxl.styles import Alignment, Border, Side, PatternFill, Font
-
-from .models import Pedidos, ProductosPedido, Cliente, ProductoInventario, Usuario
 
 @login_required
 def reporte_pedidos(request):

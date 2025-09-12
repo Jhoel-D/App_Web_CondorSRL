@@ -9,7 +9,6 @@
         <div class="col-12 d-flex justify-content-between align-items-center">
             <div class="text d-flex flex-column">
                 <h2 class="mb-1"><i class="fas fa-chart-line me-2"></i>DASHBOARD</h2>
-                <p class="text">Resumen ejecutivo del rendimiento empresarial</p>
             </div>
             <form class="d-flex gap-2" method="get">
                 <div class="col-md-3">
@@ -48,7 +47,7 @@
                     </div>
                     <div class="flex-grow-1 ms-3">
                         <h6 class="text-muted mb-1">Ingresos Totales</h6>
-                        <h4 class="mb-0">${{ total_ingresos|floatformat:2 }}</h4>
+                        <h4 class="mb-0">{{ total_ingresos|floatformat:2 }} Bs</h4>
                     </div>
                 </div>
             </div>
@@ -114,15 +113,33 @@
         </div>
     </div>
 
-    <!-- Resumen por módulos -->
+     <!-- Resumen por módulos -->
     <div class="row mb-4">
         {% for key, mod in resumen_modulos.items %}
         <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <h6 class="text-muted fw-bold">{{ key|title }}</h6>
-                    <p class="mb-1">Activos: {{ mod.activos }}</p>
-                    <p class="mb-0">Total: {{ mod.total }}</p>
+            <div class="card border-0 shadow-sm h-100 hover-shadow">
+                <div class="card-body d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+                            <!-- Puedes cambiar el icono según el módulo -->
+                            {% if key == 'ventas' %}
+                            <i class="fas fa-dollar-sign text-primary fs-3"></i>
+                            {% elif key == 'clientes' %}
+                            <i class="fas fa-users text-success fs-3"></i>
+                            {% elif key == 'productos' %}
+                            <i class="fas fa-boxes text-warning fs-3"></i>
+                            {% else %}
+                            <i class="fas fa-cogs text-info fs-3"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="text-muted mb-1">{{ key|title }}</h6>
+                        <p class="mb-0">
+                            <span class="fw-semibold">Activos:</span> {{ mod.activos }}<br>
+                            <span class="fw-semibold">Total:</span> {{ mod.total }}
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -130,33 +147,75 @@
     </div>
 
 
+
+
+    
     <!-- Top productos y actividad reciente -->
-    <div class="row mb-4">
+    <div class="row mb-4"> <!-- Row contenedor -->
         <div class="col-md-6 mb-3">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header fw-bold">TOP 5 PRODUCTOS MAS VENDIDOS</div>
-                <ul class="list-group list-group-flush">
+                <div class="card-header fw-bold bg-success text-white">
+                    <i class="fas fa-trophy me-2"></i>Top 5 Productos Más Vendidos
+                </div>
+                <div class="card-body p-3">
                     {% for prod in top_productos %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ prod.producto__nombre }}
-                            <span class="badge bg-primary rounded-pill">{{ prod.total_vendido }}</span>
-                        </li>
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border-bottom rounded hover-shadow">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-box fa-lg text-primary me-2"></i>
+                            <span class="fw-semibold">{{ prod.producto__nombre }}</span>
+                        </div>
+                        <span class="badge bg-primary rounded-pill px-3 py-2">
+                            {{ prod.total_vendido }} uds
+                        </span>
+                    </div>
+                    {% empty %}
+                    <p class="text-center text-muted">No hay productos vendidos.</p>
                     {% endfor %}
-                </ul>
+                </div>
             </div>
         </div>
+
         <div class="col-md-6 mb-3">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header">Actividad Reciente</div>
-                <ul class="list-group list-group-flush">
+                <div class="card-header fw-bold bg-primary text-white">
+                    <i class="fas fa-history me-2"></i>Actividad Reciente
+                </div>
+                <div class="card-body p-3">
                     {% for act in actividad_reciente %}
-                        <li class="list-group-item">
-                            Venta #{{ act.id_venta }} - {{ act.id_cliente.nombre }} - {{ act.estado }} - ${{ act.costo_total|floatformat:2 }}
-                        </li>
+                    <div class="d-flex justify-content-between align-items-start mb-2 p-2 border-bottom rounded hover-shadow">
+                        <div>
+                            <h6 class="mb-1 fw-bold">Venta #{{ act.id_venta }} - {{ act.id_cliente.nombre }}</h6>
+                            <small class="text-muted">
+                                {{ act.fecha_registro|date:"d-m-Y H:i" }} | Vendedor: {{ act.id_vendedor.first_name }} {{ act.id_vendedor.last_name }}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge 
+                                {% if act.estado == 'PENDIENTE' %}bg-warning
+                                {% elif act.estado == 'COMPLETADO' %}bg-success
+                                {% else %}bg-secondary{% endif %}">
+                                {{ act.estado }}
+                            </span>
+                            <div class="mt-1 fw-bold">{{ act.costo_total|floatformat:2 }} Bs</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-center text-muted">No hay actividad reciente.</p>
                     {% endfor %}
-                </ul>
+                </div>
             </div>
         </div>
+    </div>
+
+    <style>
+    .hover-shadow:hover {
+        box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);
+        transition: 0.2s;
+    }
+    </style>
+
+    
+
     </div>
 
 </div>
@@ -169,7 +228,7 @@ new Chart(document.getElementById('ventasChart').getContext('2d'), {
     data: {
         labels: {{ fechas_grafico|safe }}, // Fechas (eje X)
         datasets: [{
-            label: 'Ventas ($)',
+            label: 'Ventas (Bs)',
             data: {{ ventas_grafico|safe }}, // Valores (eje Y)
             borderColor: '#0d6efd',
             backgroundColor: 'rgba(13,110,253,0.1)',
@@ -184,7 +243,7 @@ new Chart(document.getElementById('ventasChart').getContext('2d'), {
             tooltip: {
                 callbacks: {
                     label: function(context) {
-                        return '$' + context.formattedValue;
+                        return 'Bs ' + context.formattedValue;
                     }
                 }
             }
@@ -194,7 +253,7 @@ new Chart(document.getElementById('ventasChart').getContext('2d'), {
                 beginAtZero: true,
                 ticks: {
                     callback: function(value) {
-                        return '$' + value;
+                        return 'Bs ' + value;
                     }
                 }
             }
