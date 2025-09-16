@@ -15,7 +15,7 @@
             </div>
             <div class="form-group">
                 <label for="id_precio_unitario" class="form-label">Precio Unitario</label>
-                <input type="number" step="0.01" class="form-control" id="id_precio_unitario" name="precio_unitario" placeholder="Ej. 19.99" required>
+                <input type="number" step="0.01" min="1" class="form-control" id="id_precio_unitario" name="precio_unitario" placeholder="Ej. 19.99" required>
             </div>
             <div class="form-group">
                 <label for="id_id_categoria" class="form-label">Categoría</label>
@@ -39,7 +39,7 @@
             </div>
             <div class="form-group">
                 <label for="id_cantidad_stock" class="form-label">Cantidad en Stock</label>
-                <input type="number" class="form-control" id="id_cantidad_stock" name="cantidad_stock" placeholder="Cantidad disponible" required>
+                <input type="number" class="form-control" min="1" id="id_cantidad_stock" name="cantidad_stock" placeholder="Cantidad disponible" required>
             </div>
             <div class="form-group">
                 <label for="id_imagen_producto" class="form-label">Imagen del Producto</label>

@@ -1,7 +1,7 @@
 {% extends 'Base/base_home.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
-<div class="container mt-5 text">
+<div class="container mt-3 text">
     <h1 class="mb-4">Crear Pedido</h1>
     <form id="crear-venta-form" method="POST" class="needs-validation" novalidate>
         {% csrf_token %}
@@ -26,8 +26,7 @@
             {{ form.estado|as_crispy_field }}
         </div>
 
-
-        <h3 class="mt-4">Productos</h3>
+        <h3 class="mt-1">Productos</h3>
         <table class="table table-bordered" id="productos-table">
             <thead class="table-light">
                 <tr>
@@ -60,7 +59,7 @@
         </table>
 
         <button type="button" id="add-row" class="btn btn-primary">Añadir producto</button>
-        <button type="submit" class="btn btn-success">Guardar Venta</button>
+        <button type="submit" class="btn btn-success">Guardar Pedido</button>
     </form>
 </div>
 

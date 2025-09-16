@@ -6,15 +6,12 @@
     <form id="crear-venta-form" method="POST" class="needs-validation" novalidate>
         {% csrf_token %}
         <div class="mb-3">
-            <label for="id_cliente" class="form-label">Cliente</label>
             {{ form.id_cliente|as_crispy_field }}
         </div>
         <div class="mb-3">
-            <label for="estado" class="form-label">Estado</label>
             {{ form.estado|as_crispy_field }}
         </div>
         <div class="mb-3">
-            <label for="costo_total" class="form-label">Costo Total</label>
             {{ form.costo_total|as_crispy_field }}
         </div>
 

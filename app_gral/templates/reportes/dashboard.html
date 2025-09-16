@@ -184,7 +184,7 @@
                     {% for act in actividad_reciente %}
                     <div class="d-flex justify-content-between align-items-start mb-2 p-2 border-bottom rounded hover-shadow">
                         <div>
-                            <h6 class="mb-1 fw-bold">Venta #{{ act.id_venta }} - {{ act.id_cliente.nombre }}</h6>
+                            <h6 class="mb-1 fw-bold">Venta #{{ act.id_venta }} - CLiente: {{ act.id_cliente.nombre }}</h6>
                             <small class="text-muted">
                                 {{ act.fecha_registro|date:"d-m-Y H:i" }} | Vendedor: {{ act.id_vendedor.first_name }} {{ act.id_vendedor.last_name }}
                             </small>

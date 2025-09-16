@@ -1,49 +1,65 @@
-from django.shortcuts import render,redirect, get_object_or_404
-
-from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.forms import AuthenticationForm 
-from django.contrib.auth.decorators import login_required
-
-from django.contrib.auth.models import Group
-from .models import Usuario, ProductoInventario, Categoria, Ventas, ProductosVenta, Pedidos, ProductosPedido, Cliente
-from django.db.models import Sum, Count, Q #para or en python
+# ----- Módulos principales de Django -----
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse, HttpResponse
+from django.forms import modelformset_factory
+from django.utils.timezone import now, localtime
+from django.db import transaction
 from django.core.paginator import Paginator
 
-from django.contrib.auth.forms import PasswordChangeForm
-#from django.contrib.auth.hashers import make_password
-from django.contrib import messages
+# ----- Modelos de la aplicación -----
+from .models import Usuario, ProductoInventario, Categoria, Ventas, ProductosVenta, Pedidos, ProductosPedido, Cliente
+
+# ----- Autenticación y usuarios -----
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
+from django.contrib.auth.models import Group
 from django.contrib.auth import update_session_auth_hash
-from .forms import UsuarioUpdateForm, ProductoInventarioForm, ProductoInventarioCreateForm, UsuarioForm, UsuarioCreateForm, CategoriaForm, CategoriaCreateForm, ProductosVentaForm, VentasForm, PedidosForm, ClienteCreateForm, ClienteForm
 
-from django.forms import modelformset_factory
+# ----- ORM y consultas en modelos -----
+from django.db.models import Sum, Count, Q   # Q = OR en queries
+from django.db.models.functions import TruncDate
 
-from django.http import JsonResponse, HttpResponse
-from django.db import transaction
+# ----- Formularios personalizados -----
+from .forms import (
+    UsuarioUpdateForm, UsuarioForm, UsuarioCreateForm,
+    ProductoInventarioForm, ProductoInventarioCreateForm,
+    CategoriaForm, CategoriaCreateForm,
+    ProductosVentaForm, VentasForm, PedidosForm,
+    ClienteForm, ClienteCreateForm
+)
 
-from django.utils.timezone import now, localtime
+# ----- Manejo de mensajes en vistas -----
+from django.contrib import messages
+
+# ----- Manejo de fechas y tiempos -----
 from datetime import datetime
 
-#import openpyxl
+# ----- Reportes en Excel (openpyxl) -----
+from openpyxl import Workbook
 from openpyxl.styles import Border, Side, PatternFill, Alignment, Font
-
 from io import BytesIO
 
+# ----- Reportes en PDF (ReportLab) -----
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 
-from openpyxl import Workbook
 
-from django.db.models.functions import TruncDate
-
-
-# Create your views here.
+# Menú Principal
 def menu_principal(request):
     es_administrador = request.user.groups.filter(name='Administrador').exists()
     return render(request, 'menu_principal.html', {'es_administrador': es_administrador})
 
+# Autenticación
+def login_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect("login")
+        return view_func(request, *args, **kwargs)  # ejecuta la vista original
+    return wrapper
 
 def iniciar_sesion(request):
     if request.method == 'POST':
@@ -61,7 +77,6 @@ def iniciar_sesion(request):
         form = AuthenticationForm()  # Crea una instancia vacía del formulario
     return render(request, 'iniciar_sesion.html', {'form': form})  # Renderiza la plantilla de inicio de sesión
 
-# Logout o Cerrar Sesión
 @login_required
 def cerrar_sesion (request):
     logout(request)
@@ -109,10 +124,12 @@ def mod_usuarios_home(request):
         'search_term': search_term
     })
 
+@login_required
 def ver_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     return render(request, 'usuarios/mod_personal/ver_usuario.html', {'usuario': usuario})
 
+@login_required
 def editar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
 
@@ -131,6 +148,7 @@ def editar_usuario(request, usuario_id):
 
     return render(request, 'usuarios/mod_personal/editar_usuario.html', {'form': form, 'usuario': usuario})
 
+@login_required
 def eliminar_usuario(request, usuario_id):
     # usuario = get_object_or_404(Usuario, id=usuario_id)
     # usuario.delete()
@@ -155,6 +173,7 @@ def eliminar_usuario(request, usuario_id):
     # Redirigir a la vista de la lista de usuarios
     return redirect('mod_usuarios_home')
 
+@login_required
 def registrar_usuario(request):
     if request.method == 'POST':
         form = UsuarioCreateForm(request.POST, request.FILES)
@@ -168,7 +187,6 @@ def registrar_usuario(request):
         form = UsuarioCreateForm()
     
     return render(request, 'usuarios/mod_personal/registrar_usuario.html', {'form': form})
-
 
 # MOD CLIENTES
 @login_required  
@@ -194,10 +212,13 @@ def mod_clientes_home(request):
         'usuarios': usuarios_page,
         'search_term': search_term
     })
+
+@login_required
 def ver_cliente(request, cliente_id):
     cliente = get_object_or_404(Cliente, id=cliente_id)
     return render(request, 'usuarios/mod_cliente/ver_cliente.html', {'cliente': cliente})
 
+@login_required
 def editar_cliente(request, cliente_id):
     usuario = get_object_or_404(Cliente, id=cliente_id)
     if request.method == 'POST':
@@ -215,6 +236,7 @@ def editar_cliente(request, cliente_id):
 
     return render(request, 'usuarios/mod_cliente/editar_cliente.html', {'form': form, 'usuario': usuario})
 
+@login_required
 def eliminar_cliente(request, cliente_id):
     cliente = get_object_or_404(Cliente, id=cliente_id)
 
@@ -234,6 +256,7 @@ def eliminar_cliente(request, cliente_id):
     # Redirigir a la vista de la lista de usuarios
     return redirect('mod_clientes_home')
 
+@login_required
 def registrar_cliente(request):
     if request.method == 'POST':
         form = ClienteCreateForm(request.POST, request.FILES)
@@ -287,7 +310,7 @@ def editar_rol(request, rol_id):
 #MOD VER PERFIL
 @login_required
 def ver_perfil(request):
-    user = request.user  # Obtenemos al usuario autenticado
+    user = request.user  # Obtiene el usuario actualmente autenticado
     return render(request, 'usuarios/ver_perfil.html', {'user': user})
 @login_required
 def editar_perfil(request):
@@ -320,6 +343,7 @@ def restablecer_contrasena(request):
     return render(request, 'usuarios/restablecer_contraseña.html', {'form': form})
 
 #MOD PRODUCTOS
+@login_required
 def mod_productos_home(request):
     search_term = request.GET.get('search', '')
     productos = ProductoInventario.objects.filter(nombre__icontains=search_term, is_active=True)
@@ -333,11 +357,13 @@ def mod_productos_home(request):
         'productos': productos_paginados,
         'search_term': search_term,
     })
+
+@login_required
 def ver_producto(request, producto_id):
     producto = get_object_or_404(ProductoInventario, id_producto=producto_id)
     return render(request, 'productos/ver_producto.html', {'producto': producto})
 
-
+@login_required
 def editar_producto(request, producto_id):
     producto = get_object_or_404(ProductoInventario, id_producto=producto_id)
 
@@ -356,6 +382,7 @@ def editar_producto(request, producto_id):
 
     return render(request, 'productos/editar_producto.html', {'form': form, 'producto': producto})
 
+@login_required
 def eliminar_producto(request, producto_id):
     producto = get_object_or_404(ProductoInventario, id_producto=producto_id)
     # Cambiar el estado
@@ -371,6 +398,7 @@ def eliminar_producto(request, producto_id):
     # Redirigir a la vista de la lista de usuarios
     return redirect('mod_productos_home')
 
+@login_required
 def crear_producto(request):
     if request.method == 'POST':
         form = ProductoInventarioCreateForm(request.POST, request.FILES)
@@ -386,6 +414,8 @@ def crear_producto(request):
     return render(request, 'productos/crear_productos.html', {'form': form})
 
 #MOD CATEGORíAs
+
+@login_required
 def mod_categorias_home(request):
     search_term = request.GET.get('search', '')
     categoria = Categoria.objects.filter(is_active=True)
@@ -396,7 +426,7 @@ def mod_categorias_home(request):
     
     
     # Paginación
-    paginator = Paginator(categoria, 5)  # Muestra 10 productos por página
+    paginator = Paginator(categoria, 10)  # Muestra 10 productos por página
     page_number = request.GET.get('page')  # Número de página desde la URL
     categorias_paginadas = paginator.get_page(page_number)
     
@@ -405,6 +435,7 @@ def mod_categorias_home(request):
         'search_term': search_term,
     })
 
+@login_required
 def editar_categoria(request, categoria_id):
     categoria = get_object_or_404(Categoria, id_categoria=categoria_id)
 
@@ -423,6 +454,7 @@ def editar_categoria(request, categoria_id):
 
     return render(request, 'categorias/editar_categoria.html', {'form': form, 'categoria': categoria})
 
+@login_required
 def eliminar_categoria(request, categoria_id):
     categoria = get_object_or_404(Categoria, id_categoria=categoria_id)
     # Cambiar el estado del usuario
@@ -438,6 +470,7 @@ def eliminar_categoria(request, categoria_id):
     # Redirigir a la vista de la lista de usuarios
     return redirect('mod_categorias_home')
 
+@login_required
 def crear_categoria(request):
     if request.method == 'POST':
         form = CategoriaCreateForm(request.POST, request.FILES)
@@ -478,6 +511,7 @@ def mod_ventas_home(request):
         'search_term': search_term
     })
 
+@login_required
 def ver_productos_venta(request, venta_id):
     # Obtener la venta y los productos relacionados
     venta = get_object_or_404(Ventas, id_venta=venta_id)
@@ -489,6 +523,7 @@ def ver_productos_venta(request, venta_id):
     }
     return render(request, 'ventas/ver_productos_venta.html', context)
 
+@login_required
 def ver_detalle_venta(request, venta_id):
     # Obtener la venta y los productos asociados
     venta = get_object_or_404(Ventas, id_venta=venta_id)
@@ -500,6 +535,7 @@ def ver_detalle_venta(request, venta_id):
     }
     return render(request, 'ventas/ver_detalle_venta.html', context)
 
+@login_required
 def editar_venta(request, venta_id):
     # Obtener la venta existente
     venta = get_object_or_404(Ventas, id_venta=venta_id)
@@ -567,6 +603,7 @@ def editar_venta(request, venta_id):
         'costo_total': venta.calcular_costo_total()
     })
 
+@login_required
 def dar_de_baja_venta(request, venta_id):
     venta = get_object_or_404(Ventas, id_venta=venta_id)
     if venta.is_active == True:
@@ -635,9 +672,6 @@ def crear_venta(request):
                         cantidad=cantidad,
                         subtotal=subtotal,
                     )
-
-                    # Actualizar el stock del producto
-                    # producto.cantidad_stock -= cantidad
                     producto.save()
                 except ProductoInventario.DoesNotExist:
                     return JsonResponse({'error': f"Producto con ID {producto_id} no existe"}, status=400)
@@ -677,7 +711,8 @@ def mod_pedidos_home(request):
         'pedidos': pedidos_page,
         'search_term': search_term
     })
-    
+   
+@login_required 
 def ver_productos_pedido(request, pedido_id):
     # Obtener la pedido y los productos relacionados
     pedido = get_object_or_404(Pedidos, id_pedido=pedido_id)
@@ -689,6 +724,7 @@ def ver_productos_pedido(request, pedido_id):
     }
     return render(request, 'pedidos/ver_productos_pedido.html', context)
 
+@login_required
 def ver_detalle_pedido(request, pedido_id):
     # Obtener el pedido y los productos asociados
     pedido = get_object_or_404(Pedidos, id_pedido=pedido_id)
@@ -702,6 +738,7 @@ def ver_detalle_pedido(request, pedido_id):
     }
     return render(request, 'pedidos/ver_detalle_pedido.html', context)
 
+@login_required
 def dar_de_baja_pedido(request, pedido_id):
     pedido = get_object_or_404(Pedidos, id_pedido=pedido_id)
     if pedido.is_active == True:
@@ -981,7 +1018,7 @@ def reporte_ventas(request):
             pass
 
     if cliente_id:
-        ventas_qs = ventas_qs.filter(cliente_id=cliente_id)
+        ventas_qs = ventas_qs.filter(id_cliente=cliente_id)
 
     if estado:
         ventas_qs = ventas_qs.filter(estado__iexact=estado)
@@ -1005,7 +1042,7 @@ def reporte_ventas(request):
         except ValueError:
             pass
     if cliente_id:
-        ventas_qs = ventas_qs.filter(cliente_id=cliente_id)
+        ventas_qs = ventas_qs.filter(id_cliente=cliente_id)
     if estado:
         ventas_qs = ventas_qs.filter(estado__iexact=estado)
 
@@ -1166,9 +1203,9 @@ def reporte_productos(request):
         valor_total = p.precio_unitario * p.cantidad_stock
         if p.cantidad_stock == 0:
             estado = "Agotado"
-        elif p.cantidad_stock <= 5:
+        elif p.cantidad_stock <= 10:
             estado = "Bajo"
-        elif p.cantidad_stock <= 20:
+        elif p.cantidad_stock <= 50:
             estado = "Medio"
         else:
             estado = "Alto"
@@ -1315,9 +1352,9 @@ def reporte_productos(request):
 
     return render(request, "reportes/productos.html", context)
 
+@login_required
 def reporte_financiero(request):
     return render(request, 'reportes/financiero.html')
-
 
 @login_required
 def dashboard(request):
@@ -1445,7 +1482,6 @@ def dashboard(request):
     }
 
     return render(request, 'reportes/dashboard.html', context)
-
 
 @login_required
 def reporte_pedidos(request):

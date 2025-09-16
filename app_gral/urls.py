@@ -6,15 +6,19 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.menu_principal, name='menu_principal'),  
+    #AUTENTICACION
     path('iniciar_sesion/', views.iniciar_sesion, name='iniciar_sesion'), 
-    #Cerrar Sesión
     path('cerrar_sesion/',views.cerrar_sesion, name= 'cerrar_sesion'),
+    path('perfil/', views.ver_perfil, name='ver_perfil'),
+    path('perfil/editar/', views.editar_perfil, name='editar_perfil'),
+    path('perfil/restablecer-contrasena/', views.restablecer_contrasena, name='restablecer_contrasena'),
     #MOD USUARIOS
     path('mod_usuarios_home/', views.mod_usuarios_home, name='mod_usuarios_home'),
     path('usuario/<int:usuario_id>/', views.ver_usuario, name='ver_usuario'),
     path('usuario/editar/<int:usuario_id>/', views.editar_usuario, name='editar_usuario'),
     path('usuario/eliminar/<int:usuario_id>/', views.eliminar_usuario, name='eliminar_usuario'),
     path('usuario/registrar/', views.registrar_usuario, name='registrar_usuario'),
+    
     #MOD CLIENTES
     path('mod_clientes_home/', views.mod_clientes_home, name='mod_clientes_home'),
     path('cliente/<int:cliente_id>/', views.ver_cliente, name='ver_cliente'),
@@ -23,14 +27,8 @@ urlpatterns = [
     path('cliente/registrar/', views.registrar_cliente, name='registrar_cliente'),
     #MOD ROLES
     path('roles/', views.roles_list, name='roles_list'),
-    
     path('roles/agregar/', views.agregar_rol, name='agregar_rol'),
     path('roles/editar/<int:rol_id>/', views.editar_rol, name='editar_rol'),
-    
-    #MOD VER PERFIL
-    path('perfil/', views.ver_perfil, name='ver_perfil'),
-    path('perfil/editar/', views.editar_perfil, name='editar_perfil'),
-    path('perfil/restablecer-contrasena/', views.restablecer_contrasena, name='restablecer_contrasena'),
     
     #MOD PRODUCTOS
     path('mod_productos_home/', views.mod_productos_home, name='mod_productos_home'),

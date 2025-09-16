@@ -122,7 +122,7 @@
                                 <td><strong>Fecha de registro:</strong> {{ ventas.fecha_registro|date:"d/m/Y H:i" }}</td>
                             </tr>
                             <tr>
-                                <td><strong>Cliente:</strong> {{ ventas.id_cliente.first_name }}</td>
+                                <td><strong>Cliente:</strong> {{ ventas.id_cliente.nombre }} {{ ventas.id_cliente.apellido }}</td>
                                 <td><strong>CI/NIT:</strong> {{ ventas.id_cliente.CI }}</td>
                             </tr>
                         </tbody>

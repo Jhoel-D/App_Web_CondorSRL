@@ -1,5 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User, Group
+from django.forms.models import modelformset_factory
+from django.contrib import admin
 
 from .models import Usuario, ProductoInventario, Categoria, Usuario, Ventas, ProductosVenta, Pedidos, ProductosPedido, Cliente
 
@@ -91,7 +93,6 @@ class ProductoInventarioForm(forms.ModelForm):
             raise forms.ValidationError('La cantidad en stock no puede ser negativa.')
         return cantidad
     
-
 class ProductoInventarioCreateForm(forms.ModelForm):
     class Meta:
         model = ProductoInventario
@@ -124,13 +125,11 @@ class ProductoInventarioCreateForm(forms.ModelForm):
             raise forms.ValidationError('La cantidad en stock no puede ser negativa.')
         return cantidad
 
-
 class CategoriaForm(forms.ModelForm):
     class Meta:
         model = Categoria
         fields = ['id_categoria', 'nombre', 'descripcion']
         
-
 class CategoriaCreateForm(forms.ModelForm):
     class Meta:
         model = Categoria
@@ -141,8 +140,6 @@ class CategoriaCreateForm(forms.ModelForm):
             'descripcion': forms.Textarea(attrs={'class': 'form-control'}),
         }
 
-from django.forms.models import modelformset_factory
-from django.contrib import admin
 class VentasForm(forms.ModelForm):
     class Meta:
         model = Ventas
@@ -154,9 +151,7 @@ class VentasForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['id_cliente'].queryset = Cliente.objects.filter(is_active=True)
-    
-    
-
+ 
 class ProductosVentaForm(forms.ModelForm):
     class Meta:
         model = ProductosVenta

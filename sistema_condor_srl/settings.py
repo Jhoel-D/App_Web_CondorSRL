@@ -16,7 +16,7 @@ SECRET_KEY = 'django-insecure-#%-kq#^sw@zcohstd2gmcs$29#s0(w@b3v*g%vebxihuuyjm(t
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-AUTH_USER_MODEL = 'app_gral.Usuario'  # Cambia 'miapp' al nombre de tu app
+AUTH_USER_MODEL = 'app_gral.Usuario'  # Cambia 'miapp' al nombre
 ALLOWED_HOSTS = []
 
 # Application definition
@@ -83,6 +83,8 @@ WSGI_APPLICATION = 'sistema_condor_srl.wsgi.application'
 #     }
 # }
 
+
+# Configuración de la BD como si fuera singleton para toda la aplicación
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',

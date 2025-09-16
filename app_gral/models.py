@@ -3,6 +3,8 @@ from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from django.db.models.signals import pre_delete, post_save, post_delete
 from django.dispatch import receiver
+
+#MOD USUARIOS
    
 class Usuario(AbstractUser):
     CI = models.CharField(max_length=20, unique=True)
@@ -51,7 +53,7 @@ class Cliente(models.Model):
 
     def __str__(self):
         return f"{self.nombre} {self.apellido}"
-
+#MOD CATEGORÍAS
 class Categoria(models.Model):
     id_categoria = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
@@ -63,6 +65,8 @@ class Categoria(models.Model):
 
     def __str__(self):
         return self.nombre
+    
+#MOD PRODUCTOS
 class ProductoInventario(models.Model):
     id_producto = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=200)
@@ -259,15 +263,17 @@ class Pedidos(models.Model):
     
     def __str__(self):
         return f"Pedido {self.id_pedido} - Cliente: {self.id_cliente.nombre}"
+
+
+
+
+
+
 #PARA VENTAS
 @transaction.atomic
 @receiver(post_save, sender=ProductosVenta)
 @receiver(post_delete, sender=ProductosVenta)
 def actualizar_costo_total(sender, instance, **kwargs):
-    """
-    Recalcula el costo total de la venta asociada cada vez que se agrega,
-    actualiza o elimina un producto en la venta.
-    """
     venta = instance.venta
     venta.calcular_costo_total()
     venta.save()
