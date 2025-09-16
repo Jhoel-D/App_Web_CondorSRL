@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Franquicias Condor SRL - Bolivia</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 100px 0;
+        }
+        .section-padding {
+            padding: 80px 0;
+        }
+        .card-hover {
+            transition: transform 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+        }
+        .contact-info {
+            background-color: #f8f9fa;
+        }
+        .product-card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .logo-img {
+            max-height: 80px;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <!--  Agregado logo real de la empresa -->
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="#inicio">
+                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-sg6qbGuMbA3VBqtrB6BG5W9n8QaUgB.png" alt="Condor SRL Logo" class="logo-img me-2">
+                Condor SRL
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#inicio">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#nosotros">Sobre Nosotros</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#productos">Productos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contacto">Contacto</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sección Hero -->
+    <section id="inicio" class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <!--  Actualizado título y descripción con información real -->
+                    <h1 class="display-4 fw-bold mb-4">Condor SRL</h1>
+                    <p class="lead mb-4">Empresa boliviana líder en fabricación y comercialización de productos plásticos. Innovación, calidad y excelencia desde 2006.</p>
+                    <div class="d-flex gap-3">
+                        <a href="#productos" class="btn btn-light btn-lg">Ver Productos</a>
+                        <a href="#contacto" class="btn btn-outline-light btn-lg">Contactar</a>
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <!--  Agregado logo de la empresa en lugar del ícono genérico -->
+                    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-sg6qbGuMbA3VBqtrB6BG5W9n8QaUgB.png" alt="Condor SRL Logo" class="img-fluid" style="max-height: 300px;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sobre Nosotros -->
+    <section id="nosotros" class="section-padding">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center mb-5">
+                    <h2 class="display-5 fw-bold text-primary mb-3">Sobre Nosotros</h2>
+                    <p class="lead text-muted">Conoce nuestra historia y compromiso con la industria boliviana</p>
+                </div>
+            </div>
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <!--  Actualizada información real de la empresa -->
+                    <h3 class="h2 mb-4">Nuestra Historia</h3>
+                    <p class="mb-4">Cóndor SRL es una empresa boliviana fundada en 2006, dedicada a la fabricación y comercialización de productos plásticos como calaminas, politubos, tanques de agua, piscinas, hidromasajes y sanitarios portátiles.</p>
+                    <p class="mb-4">También trabajamos con resinas y fibra de vidrio, además de brindar asesoría técnica especializada en minería y petróleo. Contamos con siete líneas de producción y recientemente hemos expandido nuestras operaciones a Hong Kong como parte de nuestro proceso de internacionalización.</p>
+                    <p class="mb-4">Nuestros proyectos innovadores incluyen el desarrollo de buses eléctricos con inversión millonaria, demostrando nuestro compromiso con la sostenibilidad y la innovación tecnológica.</p>
+                </div>
+                <div class="col-lg-6">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card card-hover h-100 text-center p-4">
+                                <i class="fas fa-calendar-alt text-primary fs-1 mb-3"></i>
+                                <h5>Fundación</h5>
+                                <p class="text-muted">Establecida en 2006</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card card-hover h-100 text-center p-4">
+                                <i class="fas fa-industry text-success fs-1 mb-3"></i>
+                                <h5>Producción</h5>
+                                <p class="text-muted">7 líneas de producción</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card card-hover h-100 text-center p-4">
+                                <i class="fas fa-globe text-warning fs-1 mb-3"></i>
+                                <h5>Internacional</h5>
+                                <p class="text-muted">Operaciones en Hong Kong</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card card-hover h-100 text-center p-4">
+                                <i class="fas fa-map-marker-alt text-info fs-1 mb-3"></i>
+                                <h5>Sucursales</h5>
+                                <p class="text-muted">El Alto, La Paz, Santa Cruz</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Productos -->
+    <section id="productos" class="section-padding bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center mb-5">
+                    <h2 class="display-5 fw-bold text-primary mb-3">Nuestros Productos</h2>
+                    <p class="lead text-muted">Soluciones plásticas innovadoras para diversas industrias</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <!--  Actualizado con productos reales de la empresa -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="card product-card h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-home text-primary fs-1 mb-3"></i>
+                            <h5 class="card-title">Productos para Construcción</h5>
+                            <p class="card-text">Calaminas plásticas de alta calidad, resistentes y duraderas para techos y coberturas.</p>
+                            <ul class="list-unstyled text-start">
+                                <li><i class="fas fa-check text-success me-2"></i>Resistente a la intemperie</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Fácil instalación</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Garantía extendida</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card product-card h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-tint text-success fs-1 mb-3"></i>
+                            <h5 class="card-title">Sistemas de Agua</h5>
+                            <p class="card-text">Tanques de agua, politubos y sistemas completos para almacenamiento y distribución de agua.</p>
+                            <ul class="list-unstyled text-start">
+                                <li><i class="fas fa-check text-success me-2"></i>Diferentes capacidades</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Material no tóxico</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Larga durabilidad</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card product-card h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-swimming-pool text-info fs-1 mb-3"></i>
+                            <h5 class="card-title">Recreación y Bienestar</h5>
+                            <p class="card-text">Piscinas, hidromasajes y sanitarios portátiles para recreación y eventos.</p>
+                            <ul class="list-unstyled text-start">
+                                <li><i class="fas fa-check text-success me-2"></i>Diseños modernos</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Fácil mantenimiento</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Instalación profesional</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card product-card h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-flask text-warning fs-1 mb-3"></i>
+                            <h5 class="card-title">Resinas y Fibra de Vidrio</h5>
+                            <p class="card-text">Materiales especializados para aplicaciones industriales y de construcción.</p>
+                            <ul class="list-unstyled text-start">
+                                <li><i class="fas fa-check text-success me-2"></i>Alta resistencia</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Versatilidad de uso</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Calidad industrial</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card product-card h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-hard-hat text-danger fs-1 mb-3"></i>
+                            <h5 class="card-title">Asesoría Técnica</h5>
+                            <p class="card-text">Servicios especializados de consultoría técnica para minería y petróleo.</p>
+                            <ul class="list-unstyled text-start">
+                                <li><i class="fas fa-check text-success me-2"></i>Experiencia especializada</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Soluciones personalizadas</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Soporte continuo</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card product-card h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-bus text-success fs-1 mb-3"></i>
+                            <h5 class="card-title">Innovación Sostenible</h5>
+                            <p class="card-text">Desarrollo de buses eléctricos y tecnologías sostenibles para el transporte.</p>
+                            <ul class="list-unstyled text-start">
+                                <li><i class="fas fa-check text-success me-2"></i>Tecnología verde</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Inversión millonaria</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Futuro sostenible</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contacto -->
+    <section id="contacto" class="section-padding contact-info">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center mb-5">
+                    <h2 class="display-5 fw-bold text-primary mb-3">Contacto</h2>
+                    <p class="lead text-muted">Contáctanos para conocer más sobre nuestros productos y servicios</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow">
+                        <div class="card-body p-5">
+                            <h4 class="mb-4">Envíanos un mensaje</h4>
+                            <form>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="nombre" class="form-label">Nombre completo</label>
+                                        <input type="text" class="form-control" id="nombre" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="email" class="form-label">Correo electrónico</label>
+                                        <input type="email" class="form-control" id="email" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="telefono" class="form-label">Teléfono</label>
+                                        <input type="tel" class="form-control" id="telefono" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="ciudad" class="form-label">Ciudad</label>
+                                        <select class="form-select" id="ciudad" required>
+                                            <option value="">Selecciona tu ciudad</option>
+                                            <option value="el-alto">El Alto</option>
+                                            <option value="la-paz">La Paz</option>
+                                            <option value="santa-cruz">Santa Cruz</option>
+                                            <option value="cochabamba">Cochabamba</option>
+                                            <option value="sucre">Sucre</option>
+                                            <option value="oruro">Oruro</option>
+                                            <option value="potosi">Potosí</option>
+                                            <option value="tarija">Tarija</option>
+                                            <option value="beni">Beni</option>
+                                            <option value="pando">Pando</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="mensaje" class="form-label">Mensaje</label>
+                                        <textarea class="form-control" id="mensaje" rows="4" placeholder="Cuéntanos sobre tu interés en nuestros productos..." required></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary btn-lg">Enviar mensaje</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <!--  Actualizada información de contacto con datos reales de las sucursales -->
+                    <div class="card border-0 shadow h-100">
+                        <div class="card-body p-4">
+                            <h5 class="mb-4">Nuestras Sucursales</h5>
+                            
+                            <div class="mb-4">
+                                <h6 class="text-primary">Sucursal 1 - El Alto</h6>
+                                <div class="d-flex align-items-start mb-2">
+                                    <i class="fas fa-map-marker-alt text-primary me-2 mt-1"></i>
+                                    <small>Av. 6 de marzo Nro. 1020 Zona 12 de octubre<br>(Frente a la Aduana Nacional)</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-phone text-primary me-2"></i>
+                                    <small>Tel. 2811018</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-fax text-primary me-2"></i>
+                                    <small>Fax. 2-823292</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h6 class="text-primary">Sucursal 2 - La Paz</h6>
+                                <div class="d-flex align-items-start mb-2">
+                                    <i class="fas fa-map-marker-alt text-primary me-2 mt-1"></i>
+                                    <small>Av. Ballivián Nro. 432 Edificio Luxor<br>Entre calles 10 y 11</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-phone text-primary me-2"></i>
+                                    <small>Tel. 2770981</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-mobile-alt text-primary me-2"></i>
+                                    <small>Cel. 65160243</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h6 class="text-primary">Sucursal 3 - Santa Cruz</h6>
+                                <div class="d-flex align-items-start mb-2">
+                                    <i class="fas fa-map-marker-alt text-primary me-2 mt-1"></i>
+                                    <small>Av. Argomoza Nro. 152 Primer Anillo</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-phone text-primary me-2"></i>
+                                    <small>Tel. 3-221313</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h6 class="text-primary">Planta de Producción</h6>
+                                <div class="d-flex align-items-start mb-2">
+                                    <i class="fas fa-industry text-primary me-2 mt-1"></i>
+                                    <small>Villa Bolívar "D" calle 105 Nro. 511</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-phone text-primary me-2"></i>
+                                    <small>Tel. 2881818 – 2882188 - 2-801199</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-fax text-primary me-2"></i>
+                                    <small>Fax. 2-850997</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-mobile-alt text-primary me-2"></i>
+                                    <small>Cel. 77241417</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <!--  Actualizado footer con información real -->
+                    <p class="mb-0">&copy; 2025 Condor SRL. Todos los derechos reservados.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Innovación y calidad desde 2006</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Smooth scrolling para los enlaces de navegación
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Actualizar navbar activo al hacer scroll
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (scrollY >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
