@@ -148,95 +148,60 @@
                     <p class="lead text-muted">Soluciones plásticas innovadoras para diversas industrias</p>
                 </div>
             </div>
+
+            <!-- Filtros -->
+            <form method="get" class="mb-4 text-center">
+                <div class="row justify-content-center g-2">
+                    <div class="col-md-4">
+                        <input type="text" name="q" class="form-control" placeholder="Buscar producto..."
+                            value="{{ query|default:'' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="categoria" class="form-select">
+                            <option value="">Todas las categorías</option>
+                            {% for cat in categorias %}
+                                <option value="{{ cat.id }}"
+                                    {% if categoria_id == cat.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ cat.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Lista de productos -->
             <div class="row g-4">
-                <!--  Actualizado con productos reales de la empresa -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="card product-card h-100">
-                        <div class="card-body text-center p-4">
-                            <i class="fas fa-home text-primary fs-1 mb-3"></i>
-                            <h5 class="card-title">Productos para Construcción</h5>
-                            <p class="card-text">Calaminas plásticas de alta calidad, resistentes y duraderas para techos y coberturas.</p>
-                            <ul class="list-unstyled text-start">
-                                <li><i class="fas fa-check text-success me-2"></i>Resistente a la intemperie</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Fácil instalación</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Garantía extendida</li>
-                            </ul>
+                {% for producto in productos %}
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card product-card h-100">
+                            {% if producto.imagen_producto %}
+                                <img src="{{ producto.imagen_producto.url }}" 
+                                    class="card-img-top" alt="{{ producto.nombre }}">
+                            {% else %}
+                                <img src="https://via.placeholder.com/400x250.png?text=Sin+Imagen" 
+                                    class="card-img-top" alt="Sin imagen">
+                            {% endif %}
+                            <div class="card-body text-center p-4">
+                                <h5 class="card-title">{{ producto.nombre }}</h5>
+                                <p class="card-text text-muted">{{ producto.descripcion|truncatewords:20 }}</p>
+                                <p class="fw-bold text-primary mb-2">Bs. {{ producto.precio_unitario }}</p>
+                                <small class="text-muted">Categoría: {{ producto.id_categoria.nombre }}</small>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="card product-card h-100">
-                        <div class="card-body text-center p-4">
-                            <i class="fas fa-tint text-success fs-1 mb-3"></i>
-                            <h5 class="card-title">Sistemas de Agua</h5>
-                            <p class="card-text">Tanques de agua, politubos y sistemas completos para almacenamiento y distribución de agua.</p>
-                            <ul class="list-unstyled text-start">
-                                <li><i class="fas fa-check text-success me-2"></i>Diferentes capacidades</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Material no tóxico</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Larga durabilidad</li>
-                            </ul>
-                        </div>
+                {% empty %}
+                    <div class="col-12 text-center">
+                        <p class="text-muted">No se encontraron productos.</p>
                     </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="card product-card h-100">
-                        <div class="card-body text-center p-4">
-                            <i class="fas fa-swimming-pool text-info fs-1 mb-3"></i>
-                            <h5 class="card-title">Recreación y Bienestar</h5>
-                            <p class="card-text">Piscinas, hidromasajes y sanitarios portátiles para recreación y eventos.</p>
-                            <ul class="list-unstyled text-start">
-                                <li><i class="fas fa-check text-success me-2"></i>Diseños modernos</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Fácil mantenimiento</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Instalación profesional</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="card product-card h-100">
-                        <div class="card-body text-center p-4">
-                            <i class="fas fa-flask text-warning fs-1 mb-3"></i>
-                            <h5 class="card-title">Resinas y Fibra de Vidrio</h5>
-                            <p class="card-text">Materiales especializados para aplicaciones industriales y de construcción.</p>
-                            <ul class="list-unstyled text-start">
-                                <li><i class="fas fa-check text-success me-2"></i>Alta resistencia</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Versatilidad de uso</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Calidad industrial</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="card product-card h-100">
-                        <div class="card-body text-center p-4">
-                            <i class="fas fa-hard-hat text-danger fs-1 mb-3"></i>
-                            <h5 class="card-title">Asesoría Técnica</h5>
-                            <p class="card-text">Servicios especializados de consultoría técnica para minería y petróleo.</p>
-                            <ul class="list-unstyled text-start">
-                                <li><i class="fas fa-check text-success me-2"></i>Experiencia especializada</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Soluciones personalizadas</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Soporte continuo</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="card product-card h-100">
-                        <div class="card-body text-center p-4">
-                            <i class="fas fa-bus text-success fs-1 mb-3"></i>
-                            <h5 class="card-title">Innovación Sostenible</h5>
-                            <p class="card-text">Desarrollo de buses eléctricos y tecnologías sostenibles para el transporte.</p>
-                            <ul class="list-unstyled text-start">
-                                <li><i class="fas fa-check text-success me-2"></i>Tecnología verde</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Inversión millonaria</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Futuro sostenible</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </section>
+
 
     <!-- Contacto -->
     <section id="contacto" class="section-padding contact-info">
